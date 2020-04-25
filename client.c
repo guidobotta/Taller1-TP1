@@ -13,6 +13,7 @@
 int main(int argc, char const *argv[]) {
     
     if ((argc < 3) || (argc > 4)) {
+        printf("Error en la cantidad de parámetros.");
         return 1;
     }
 
@@ -38,8 +39,8 @@ int main(int argc, char const *argv[]) {
 
     status = getaddrinfo(hostname, servicename, &hints, &results);
 
-    if (!status){
-        //printf("Error in getaddrinfo: %s\n", gai_strerror(status));
+    if (!status) {
+        printf("Error in getaddrinfo: %s\n", gai_strerror(status));
         return -1;
     }
 
@@ -48,10 +49,9 @@ int main(int argc, char const *argv[]) {
     addr_ptr = result;
     while ((addr_ptr != NULL) || (status != -1)) {
         if (socket_create(&clsocket) == -1) {
-            //printf("Error: %s\n", strerror(errno));
-            continue; //sacar
+            printf("Error: %s\n", strerror(errno));
         } else {
-            status = socket_connect(&clsocket);
+            status = socket_connect(&clsocket, addr_ptr->ai_addr, addr_ptr->ai_addrlen);
             if (status == -1) {
                 socket_destroy(&clsocket);
             }
