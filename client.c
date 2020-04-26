@@ -19,7 +19,7 @@ int main(int argc, char const *argv[]) {
 
     const char *hostname = argv[1];
     const char *servicename = argv[2];
-    const *FILE input;
+    const FILE *input;
 
     if (argc == 3) {
         input = stdin;
@@ -39,25 +39,29 @@ int main(int argc, char const *argv[]) {
 
     status = getaddrinfo(hostname, servicename, &hints, &results);
 
-    if (!status) {
+    if (status != 0) {
         printf("Error in getaddrinfo: %s\n", gai_strerror(status));
-        return -1;
+        return 1;
     }
 
     // Recorro resultados de getaddrinfo
-    status = -1;
-    addr_ptr = result;
-    while ((addr_ptr != NULL) || (status != -1)) {
+    for (addr_ptr = results; addr_ptr != NULL; addr_ptr = addr_ptr->ai_next) {
         if (socket_create(&clsocket) == -1) {
             printf("Error: %s\n", strerror(errno));
         } else {
-            status = socket_connect(&clsocket, addr_ptr->ai_addr, addr_ptr->ai_addrlen);
-            if (status == -1) {
-                socket_destroy(&clsocket);
+            if (socket_connect(&clsocket, addr_ptr->ai_addr, addr_ptr->ai_addrlen) != -1) {
+                break;
             }
+            socket_destroy(&clsocket);
         }
-        addr_ptr = addr_ptr->ai_next;
     }
+    
+    if (addr_ptr == NULL){
+        printf("Error: Could not connect.");
+        return 1;
+    }
+
+    freeaddrinfo(results);
 
     return 0;
 }

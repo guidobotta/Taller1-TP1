@@ -30,14 +30,14 @@ int socket_connect(socket_t* self, const struct sockaddr *address,
     return connect(self->socket, address, address_len);
 }
 
-int socket_send(socket_t* self) {
-    // Do Something
+int socket_send(socket_t* self, const void *buffer, size_t length, int flags){
+    return send(self->socket, buffer, length, flags);
 }
 
-int socket_recieve(socket_t* self) {
-    // Do Something
+int socket_receive(socket_t* self, void *buffer, size_t length, int flags){
+    return recv(self->socket, buffer, length, flags);
 }
 
-int socket_shutdown(socket_t* self) {
-    // Do Something
+int socket_shutdown(socket_t* self, int how){
+    return shutdown(self->socket, how);
 }

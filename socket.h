@@ -58,18 +58,28 @@ int socket_connect(socket_t* self, const struct sockaddr *address,
                     socklen_t address_len);
 
 /*
- *
+ * Transmite un mensaje de un socket a su peer. El buffer debe contener
+ * el mensaje a ser enviado. Se debe especificar la longitud del
+ * buffer en bytes.
+ * Devuelve el numero de bytes enviados o -1 si ocurrió un error.
+ * Si ocurre un error setea errno.
 */
-int socket_send(socket_t* self);
+int socket_send(socket_t* self, const void *buffer, size_t length, int flags);
 
 /*
- *
+ * Recibe un mensaje de un sockety lo guarda en el buffer. Se debe
+ * especificar la longitud en bytes del buffer.
+ * Devuelve la longitud del mensaje en bytes o 0 si no había mensajes
+ * disponibles y el peer se cerró o -1 si ocurrió un error.
+ * Si ocurre un error setea errno.
 */
-int socket_recieve(socket_t* self);
+int socket_receive(socket_t* self, void *buffer, size_t length, int flags);
 
 /*
- *
+ * Cierra parte o toda la conexión de la comunicación un socket.
+ * Devuelve 0 si se cerró correctamente o -1 si ocurrió un error.
+ * Si ocurre un error setea errno.
 */
-int socket_shutdown(socket_t* self);
+int socket_shutdown(socket_t* self, int how);
 
 #endif
