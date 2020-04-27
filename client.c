@@ -1,67 +1,79 @@
-#define _POSIX_C_SOURCE 200112L
+#include "info_client.h"
 #include "socket.h"
-#include <string.h>
+#include "client_message.h"
 #include <stdio.h>
-#include <errno.h>
+#include <string.h>
 
-#include <stdbool.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <unistd.h>
+#define ERROR 1
+#define SUCCESS 0
 
-int main(int argc, char const *argv[]) {
-    
-    if ((argc < 3) || (argc > 4)) {
-        printf("Error en la cantidad de parámetros.");
-        return 1;
+int send_recieve_to_server(FILE* input){
+    client_message_t client_message;
+    int status;
+
+    while ((status = client_message_create(&client_message, input)) != EOF) {
+        if (status == ERROR) {
+            return ERROR;
+        }
+
+        if (client_message_to_DBUS(&client_message) == ERROR){
+            client_message_destroy(&client_message);
+            return ERROR;
+        }
+
+        printf("%s", client_message.message);
+
+        //ENVIAR, RECIBIR E IMPRIMIR
+
+        if (client_message_destroy(&client_message) == ERROR) {
+            return ERROR;
+        }
     }
 
-    const char *hostname = argv[1];
-    const char *servicename = argv[2];
-    const FILE *input;
+    return SUCCESS;
+}
 
+int communicate_to_server(int argc, char const *argv[]){
+    FILE *input;
+    
     if (argc == 3) {
         input = stdin;
     } else {
         input = fopen(argv[3], "r");
     }
 
-    struct addrinfo hints;
-    struct addrinfo *results, *addr_ptr;
-    socket_t clsocket;
-    int status;
-    
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_INET;       // IPv4
-    hints.ai_socktype = SOCK_STREAM; // TCP
-    hints.ai_flags = 0;              // None
+    send_recieve_to_server(input);
 
-    status = getaddrinfo(hostname, servicename, &hints, &results);
+    if (argc == 4) {
+        fclose(input);
+    }
+}
 
-    if (status != 0) {
-        printf("Error in getaddrinfo: %s\n", gai_strerror(status));
-        return 1;
+int main(int argc, char const *argv[]) {
+    if ((argc < 3) || (argc > 4)) {
+        printf("Error en la cantidad de parámetros.");
+        return ERROR;
     }
 
-    // Recorro resultados de getaddrinfo
-    for (addr_ptr = results; addr_ptr != NULL; addr_ptr = addr_ptr->ai_next) {
-        if (socket_create(&clsocket) == -1) {
-            printf("Error: %s\n", strerror(errno));
-        } else {
-            if (socket_connect(&clsocket, addr_ptr->ai_addr, addr_ptr->ai_addrlen) != -1) {
-                break;
-            }
-            socket_destroy(&clsocket);
-        }
-    }
-    
-    if (addr_ptr == NULL){
-        printf("Error: Could not connect.");
-        return 1;
+    info_client_t info_client;
+
+    if (info_client_create(&info_client, argv[1], argv[2]) == ERROR) {
+        return ERROR;
     }
 
-    freeaddrinfo(results);
+    if (info_client_establish_connection(&info_client) == ERROR) {
+        info_client_destroy(&info_client);
+        return ERROR;
+    }
 
-    return 0;
+    if (communicate_to_server(argc, argv) == ERROR) {
+        info_client_destroy(&info_client);
+        return ERROR;
+    }
+
+    if (info_client_destroy(&info_client) == ERROR) {
+        return ERROR;
+    }
+
+    return SUCCESS;
 }
