@@ -7,7 +7,9 @@ typedef struct client_message client_message_t;
 
 typedef struct client_message {
     char* message;
+    unsigned int words;
     size_t msgmemory;
+    size_t msglenght;
     msgbuffer_t msgbuffer;
 } client_message_t;
 

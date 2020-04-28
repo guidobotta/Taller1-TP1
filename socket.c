@@ -30,11 +30,40 @@ int socket_connect(socket_t *self, const struct sockaddr *address,
 }
 
 int socket_send(socket_t *self, const void *buffer, size_t length, int flags){
-    return send(self->socket, buffer, length, flags);
+    int bytes_sent = 0;
+    int status;
+    
+    while ((bytes_sent < lenght) && (status != 0)){
+        status = send(self->socket, buffer, length, flags);
+        
+        if (status == -1){
+            printf("Error: %s\n", strerror(errno));
+            return -1
+        }
+
+        bytes_sent += status;
+    }
+    
+    
+    return bytes_sent;
 }
 
 int socket_receive(socket_t *self, void *buffer, size_t length, int flags){
-    return recv(self->socket, buffer, length, flags);
+    int bytes_recv = 0;
+    int status;
+    
+    while ((bytes_recv < lenght) && (status != 0)){
+        status = recv(self->socket, buffer, length, flags);
+        
+        if (status == -1){
+            printf("Error: %s\n", strerror(errno));
+            return -1
+        }
+
+        bytes_recv += status;
+    }
+    
+    return bytes_recv;
 }
 
 int socket_shutdown(socket_t *self, int how){

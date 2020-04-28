@@ -3,13 +3,18 @@
 #include <stdio.h>
 #include <string.h>
 
-int _fgets32(FILE *input, char buff[]){
+/*
+ * Lee hasta encontrarse un '\n' o un EOF, o hasta
+ * leer 32 bytes.
+ * Devuelve la cantidad de caracteres leidos.
+*/
+int _fgets32(FILE *input, char buff[]) {
     char c = getc(input);
     
     if (c == EOF) return -1;
 
     int i = 0;
-    for(;(i<32) && (c != EOF) && (c != '\n'); i++) {
+    for (;(i<32) && (c != EOF) && (c != '\n'); i++) {
         buff[i] = c;
         c = getc(input);
     }
@@ -17,27 +22,29 @@ int _fgets32(FILE *input, char buff[]){
     return i;
 }
 
-int msgbuffer_create(msgbuffer_t *self){
+int msgbuffer_create(msgbuffer_t *self) {
     (self->buffer)[0] = '\0';
 }
 
-int msgbuffer_destroy(msgbuffer_t *self){
+int msgbuffer_destroy(msgbuffer_t *self) {
     return 0;
 }
 
-int msgbuffer_getline(msgbuffer_t *self, client_message_t *msg, FILE *input){
-    int n;
+int msgbuffer_getline(msgbuffer_t *self, client_message_t *msg, FILE *input) {
+    int n = 0;
     if ((n = _fgets32(input, self->buffer)) == EOF) return EOF;
 
     while (n == 32){
-        if ((n + strlen(msg->message)) > (msg->msgmemory)) {
+        (msg->msglenght) += n;
+        if ((n + (msg->msglenght)) > (msg->msgmemory)) {
             client_message_realloc(msg);
         }
         strncat(msg->message, self->buffer, n);
         n = _fgets32(input, self->buffer);
     }
 
-    if ((n + strlen(msg->message)) > (msg->msgmemory)) {
+    (msg->msglenght) += n;
+    if ((n + (msg->msglenght)) > (msg->msgmemory)) {
         client_message_realloc(msg);
     }
 

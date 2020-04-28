@@ -21,8 +21,6 @@ int send_recieve_to_server(FILE* input){
             return ERROR;
         }
 
-        printf("%s", client_message.message);
-
         //ENVIAR, RECIBIR E IMPRIMIR
 
         if (client_message_destroy(&client_message) == ERROR) {
@@ -36,16 +34,31 @@ int send_recieve_to_server(FILE* input){
 int communicate_to_server(int argc, char const *argv[]){
     FILE *input;
     
-    if (argc == 3) {
-        input = stdin;
-    } else {
+    if (argc == 4) {
         input = fopen(argv[3], "r");
+    } else {
+        input = stdin;
     }
 
-    send_recieve_to_server(input);
+    if (input == NULL){
+        printf("Error: %s\n", strerror(errno));
+        return ERROR;
+    }
+
+    if (send_recieve_to_server(input) == ERROR){
+        if (argc == 4) {
+            if (fclose(input) == EOF){
+                printf("Error: %s\n", strerror(errno));
+            }
+        }
+        return ERROR;
+    }
 
     if (argc == 4) {
-        fclose(input);
+        if (fclose(input) == EOF){
+            printf("Error: %s\n", strerror(errno));
+            return ERROR;
+        }
     }
 }
 
