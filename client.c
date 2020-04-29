@@ -3,6 +3,7 @@
 #include "client_message.h"
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #define ERROR 1
 #define SUCCESS 0
@@ -10,16 +11,19 @@
 int send_recieve_to_server(FILE* input){
     client_message_t client_message;
     int status;
+    size_t id = 0;    
 
     while ((status = client_message_create(&client_message, input)) != EOF) {
         if (status == ERROR) {
             return ERROR;
         }
 
-        if (client_message_to_DBUS(&client_message) == ERROR){
+        if (client_message_to_DBUS(&client_message, id) == ERROR){
             client_message_destroy(&client_message);
             return ERROR;
         }
+
+        id++;
 
         //ENVIAR, RECIBIR E IMPRIMIR
 

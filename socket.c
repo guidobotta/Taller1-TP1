@@ -1,6 +1,8 @@
 #define _POSIX_C_SOURCE 201112L
 
 #include "socket.h"
+#include <stdio.h>
+#include <errno.h>
 
 int socket_create(socket_t *self) {
     self->socket = socket(AF_INET, SOCK_STREAM, 0); // IPv4, TCP, ANY
@@ -33,12 +35,12 @@ int socket_send(socket_t *self, const void *buffer, size_t length, int flags){
     int bytes_sent = 0;
     int status;
     
-    while ((bytes_sent < lenght) && (status != 0)){
+    while ((bytes_sent < length) && (status != 0)){
         status = send(self->socket, buffer, length, flags);
         
         if (status == -1){
             printf("Error: %s\n", strerror(errno));
-            return -1
+            return -1;
         }
 
         bytes_sent += status;
@@ -52,12 +54,12 @@ int socket_receive(socket_t *self, void *buffer, size_t length, int flags){
     int bytes_recv = 0;
     int status;
     
-    while ((bytes_recv < lenght) && (status != 0)){
+    while ((bytes_recv < length) && (status != 0)){
         status = recv(self->socket, buffer, length, flags);
         
         if (status == -1){
             printf("Error: %s\n", strerror(errno));
-            return -1
+            return -1;
         }
 
         bytes_recv += status;

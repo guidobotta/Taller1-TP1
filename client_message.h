@@ -7,7 +7,6 @@ typedef struct client_message client_message_t;
 
 typedef struct client_message {
     char* message;
-    unsigned int words;
     size_t msgmemory;
     size_t msglenght;
     msgbuffer_t msgbuffer;
@@ -19,6 +18,6 @@ int client_message_destroy(client_message_t *self);
 
 int client_message_realloc(client_message_t *self);
 
-int client_message_to_DBUS(client_message_t *self);
+int client_message_to_DBUS(client_message_t *self, size_t msg_id);
 
 #endif
