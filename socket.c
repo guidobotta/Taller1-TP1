@@ -37,7 +37,7 @@ int socket_send(socket_t *self, const void *buffer, size_t length, int flags){
     size_t status;
     
     while ((bytes_sent < length) && (status != 0)){
-        status = send(self->socket, buffer, length, flags);
+        status = send(self->socket, &(buffer[bytes_sent]), length, flags);
         
         if (status == -1){
             printf("Error: %s\n", strerror(errno));
@@ -56,7 +56,7 @@ int socket_receive(socket_t *self, void *buffer, size_t length, int flags){
     size_t status;
     
     while ((bytes_recv < length) && (status != 0)){
-        status = recv(self->socket, buffer, length, flags);
+        status = recv(self->socket, &(buffer[bytes_recv]), length, flags);
         
         if (status == -1){
             printf("Error: %s\n", strerror(errno));

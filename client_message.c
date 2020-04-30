@@ -1,6 +1,6 @@
 #include "client_message.h"
 #include "msgbuffer.h"
-#include "dbus_protocol.h"
+#include "dbus_protocol_cl.h"
 #include "info_client.h"
 
 #include <string.h>
@@ -30,13 +30,13 @@ int client_message_create(client_message_t *self, FILE *input) {
 
 int client_message_send(client_message_t *self, info_client_t *info_client, 
                         uint32_t msg_id) {
-    dbus_protocol_t dbus_protocol;
-    dbus_protocol_create(&dbus_protocol);
+    dbus_protocol_cl_t dbus_protocol_cl;
+    dbus_protocol_cl_create(&dbus_protocol_cl);
 
-    dbus_protocol_message_to_DBUS(&dbus_protocol, self, msg_id);
-    info_client_send_message(info_client, &dbus_protocol);
+    dbus_protocol_cl_message_to_DBUS(&dbus_protocol_cl, self, msg_id);
+    info_client_send_message(info_client, &dbus_protocol_cl);
 
-    dbus_protocol_destroy(&dbus_protocol);
+    dbus_protocol_cl_destroy(&dbus_protocol_cl);
 
     return SUCCESS;
 }

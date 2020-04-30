@@ -7,7 +7,7 @@
 typedef struct info_client info_client_t;
 
 #include "socket.h"
-#include "dbus_protocol.h"
+#include "dbus_protocol_cl.h"
 #include <netdb.h>
 
 typedef struct info_client {
@@ -26,6 +26,6 @@ int info_client_destroy(info_client_t *self);
 int info_client_establish_connection(info_client_t *self);
 
 int info_client_send_message(info_client_t *self, 
-                                dbus_protocol_t *dbus_protocol);
+                                dbus_protocol_cl_t *dbus_protocol_cl);
 
 #endif

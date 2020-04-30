@@ -61,10 +61,10 @@ int info_client_establish_connection(info_client_t *self){
 }
 
 int info_client_send_message(info_client_t *self, 
-                                dbus_protocol_t *dbus_protocol) {
-    socket_send(&(self->clsocket), dbus_protocol->dbusheader, 
-                dbus_protocol->header_length, 0);
-    socket_send(&(self->clsocket), dbus_protocol->dbusbody, 
-                dbus_protocol->body_length, 0);
+                                dbus_protocol_cl_t *dbus_protocol_cl) {
+    socket_send(&(self->clsocket), dbus_protocol_cl->dbusheader, 
+                dbus_protocol_cl->header_length, 0);
+    socket_send(&(self->clsocket), dbus_protocol_cl->dbusbody, 
+                dbus_protocol_cl->body_length, 0);
     return SUCCESS;
 }
