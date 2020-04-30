@@ -1,11 +1,12 @@
-#define _POSIX_C_SOURCE 201112L
-
 #include "socket.h"
 #include <stdio.h>
 #include <errno.h>
+#include <string.h>
+#include <stdlib.h>
 
 int socket_create(socket_t *self) {
     self->socket = socket(AF_INET, SOCK_STREAM, 0); // IPv4, TCP, ANY
+    return 0;
 }
 
 int socket_destroy(socket_t *self) {
@@ -32,8 +33,8 @@ int socket_connect(socket_t *self, const struct sockaddr *address,
 }
 
 int socket_send(socket_t *self, const void *buffer, size_t length, int flags){
-    int bytes_sent = 0;
-    int status;
+    size_t bytes_sent = 0;
+    size_t status;
     
     while ((bytes_sent < length) && (status != 0)){
         status = send(self->socket, buffer, length, flags);
@@ -47,12 +48,12 @@ int socket_send(socket_t *self, const void *buffer, size_t length, int flags){
     }
     
     
-    return bytes_sent;
+    return (int)bytes_sent;
 }
 
 int socket_receive(socket_t *self, void *buffer, size_t length, int flags){
-    int bytes_recv = 0;
-    int status;
+    size_t bytes_recv = 0;
+    size_t status;
     
     while ((bytes_recv < length) && (status != 0)){
         status = recv(self->socket, buffer, length, flags);
@@ -65,7 +66,7 @@ int socket_receive(socket_t *self, void *buffer, size_t length, int flags){
         bytes_recv += status;
     }
     
-    return bytes_recv;
+    return (int)bytes_recv;
 }
 
 int socket_shutdown(socket_t *self, int how){

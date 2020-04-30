@@ -8,24 +8,24 @@
 #define ERROR 1
 #define SUCCESS 0
 
-int send_recieve_to_server(FILE* input){
+int send_recieve_to_server(FILE* input, info_client_t *info_client){
     client_message_t client_message;
     int status;
-    size_t id = 0;    
+    uint32_t id = 0; // pasar a info_client o al client_message
 
     while ((status = client_message_create(&client_message, input)) != EOF) {
         if (status == ERROR) {
             return ERROR;
         }
 
-        if (client_message_to_DBUS(&client_message, id) == ERROR){
+        if (client_message_send(&client_message, info_client, id) == ERROR){
             client_message_destroy(&client_message);
             return ERROR;
         }
 
         id++;
 
-        //ENVIAR, RECIBIR E IMPRIMIR
+        //RECIBIR E IMPRIMIR
 
         if (client_message_destroy(&client_message) == ERROR) {
             return ERROR;
@@ -35,7 +35,7 @@ int send_recieve_to_server(FILE* input){
     return SUCCESS;
 }
 
-int communicate_to_server(int argc, char const *argv[]){
+int communicate_to_server(int argc, char const *argv[], info_client_t *info_client){
     FILE *input;
     
     if (argc == 4) {
@@ -49,7 +49,7 @@ int communicate_to_server(int argc, char const *argv[]){
         return ERROR;
     }
 
-    if (send_recieve_to_server(input) == ERROR){
+    if (send_recieve_to_server(input, info_client) == ERROR){
         if (argc == 4) {
             if (fclose(input) == EOF){
                 printf("Error: %s\n", strerror(errno));
@@ -64,6 +64,8 @@ int communicate_to_server(int argc, char const *argv[]){
             return ERROR;
         }
     }
+
+    return SUCCESS;
 }
 
 int main(int argc, char const *argv[]) {
@@ -83,7 +85,7 @@ int main(int argc, char const *argv[]) {
         return ERROR;
     }
 
-    if (communicate_to_server(argc, argv) == ERROR) {
+    if (communicate_to_server(argc, argv, &info_client) == ERROR) {
         info_client_destroy(&info_client);
         return ERROR;
     }

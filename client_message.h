@@ -4,6 +4,7 @@
 typedef struct client_message client_message_t;
 
 #include "msgbuffer.h"
+#include "info_client.h"
 
 typedef struct client_message {
     char* message;
@@ -18,6 +19,7 @@ int client_message_destroy(client_message_t *self);
 
 int client_message_realloc(client_message_t *self);
 
-int client_message_to_DBUS(client_message_t *self, size_t msg_id);
+int client_message_send(client_message_t *self, info_client_t *info_client, 
+                        uint32_t msg_id);
 
 #endif
