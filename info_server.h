@@ -1,6 +1,9 @@
 #ifndef __INFO_SERVER_H__
 #define __INFO_SERVER_H__
 
+#define _POSIX_C_SOURCE 201112L
+#define __USE_XOPEN2K
+
 #include "socket.h"
 #include <netdb.h>
 

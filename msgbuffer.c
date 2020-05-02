@@ -2,6 +2,7 @@
 #include "msgbuffer.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 int msgbuffer_create(msgbuffer_t *self) {
     (self->buffer)[0] = '\0';
@@ -15,7 +16,7 @@ int msgbuffer_destroy(msgbuffer_t *self) {
 int msgbuffer_getline(msgbuffer_t *self, client_message_t *msg, FILE *input) {
     if (fgets(self->buffer, 32, input) == NULL) return EOF;
 
-    size_t n = strlen(self->buffer);
+    uint32_t n = (uint32_t)strlen(self->buffer);
 
     while (n == 31){
         (msg->msglenght) += n;
@@ -24,11 +25,11 @@ int msgbuffer_getline(msgbuffer_t *self, client_message_t *msg, FILE *input) {
         }
         strncat(msg->message, self->buffer, n);
         fgets(self->buffer, 32, input);
-        n = strlen(self->buffer);
+        n = (uint32_t)strlen(self->buffer);
     }
 
     (msg->msglenght) += n;
-    if ((n + (msg->msglenght)) > (msg->msgmemory)) {
+    if ((n + (msg->msglenght + 1)) > (msg->msgmemory)) {
         client_message_realloc(msg);
     }
 

@@ -32,7 +32,7 @@ int socket_connect(socket_t *self, const struct sockaddr *address,
     return connect(self->socket, address, address_len);
 }
 
-int socket_send(socket_t *self, const void *buffer, size_t length, int flags){
+int socket_send(socket_t *self, const char *buffer, size_t length, int flags){
     size_t bytes_sent = 0;
     size_t status;
     
@@ -51,7 +51,7 @@ int socket_send(socket_t *self, const void *buffer, size_t length, int flags){
     return (int)bytes_sent;
 }
 
-int socket_receive(socket_t *self, void *buffer, size_t length, int flags){
+int socket_receive(socket_t *self, char *buffer, size_t length, int flags){
     size_t bytes_recv = 0;
     size_t status;
     

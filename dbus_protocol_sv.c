@@ -3,8 +3,9 @@
 #include "server_message.h"
 #include "socket.h"
 
-int dbus_protocol_sv_create(dbus_protocol_sv_t *self, info_server_t *info_server {
-    (self->dbusheader) = calloc(self->header_length, 16);
+int dbus_protocol_sv_create(dbus_protocol_sv_t *self, 
+                            info_server_t *info_server) {
+    (self->dbusheader) = calloc(16, sizeof(char));
 
     socket_receive(&(info_server->peersocket), self->dbusheader, 16, 0);
 
@@ -31,7 +32,7 @@ int dbus_protocol_sv_create(dbus_protocol_sv_t *self, info_server_t *info_server
     self->dbusbody = calloc(self->body_length, sizeof(char));
 
     (self->header_length) = array_length + 16;
-    self->dbusheader = realloc(self->header_length, sizeof(char));
+    self->dbusheader = realloc(self->dbusheader, self->header_length);
 
     socket_receive(&(info_server->peersocket), &((self->dbusheader)[16]),
                     (self->header_length) - 16, 0);
@@ -48,9 +49,10 @@ int dbus_protocol_sv_destroy(dbus_protocol_sv_t *self) {
     return 0;
 }
 
-int dbus_protocol_sv_DBUS_to_message(dbus_protocol_sv_t *self, server_message_t *server_message) {
+int dbus_protocol_sv_DBUS_to_message(dbus_protocol_sv_t *self, 
+                                        server_message_t *server_message) {
     uint32_t dbus_index = 0;
-    uint32_t msg_index = 0;
+    (server_message->msg_length) = 0;
 
     (server_message->message) = calloc((self->header_length) + 
                                             (self->body_length), sizeof(char));
@@ -76,9 +78,9 @@ int dbus_protocol_sv_DBUS_to_message(dbus_protocol_sv_t *self, server_message_t 
         param_size++;
 
         for (uint32_t i; i < param_size; i++) {
-            (server_message->message)[msg_index] = (self->dbusheader)[dbus_index];
+            (server_message->message)[server_message->msg_length] = (self->dbusheader)[dbus_index];
             dbus_index++;
-            msg_index++;
+            (server_message->msg_length)++;
         }
 
         while ((param_size % 8) != 0) {
@@ -101,9 +103,9 @@ int dbus_protocol_sv_DBUS_to_message(dbus_protocol_sv_t *self, server_message_t 
         param_size++;
 
         for (uint32_t i; i < param_size; i++) {
-            (server_message->message)[msg_index] = (self->dbusheader)[dbus_index];
+            (server_message->message)[server_message->msg_length] = (self->dbusheader)[dbus_index];
             dbus_index++;
-            msg_index++;
+            (server_message->msg_length)++;
         }
     }
 

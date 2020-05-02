@@ -5,11 +5,12 @@ typedef struct client_message client_message_t;
 
 #include "msgbuffer.h"
 #include "info_client.h"
+#include <stdint.h>
 
 typedef struct client_message {
     char* message;
-    size_t msgmemory;
-    size_t msglenght;
+    uint32_t msgmemory;
+    uint32_t msglenght;
     msgbuffer_t msgbuffer;
 } client_message_t;
 

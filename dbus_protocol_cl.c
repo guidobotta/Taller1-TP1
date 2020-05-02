@@ -2,6 +2,13 @@
 #include "dbus_protocol_cl.h"
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
+#include <errno.h>
+
+#include <stdio.h>
+
+#define ERROR 1
+#define SUCCESS 0
 
 int dbus_protocol_cl_create(dbus_protocol_cl_t *self) {
     (self->header_length) = 0;
@@ -12,22 +19,24 @@ int dbus_protocol_cl_create(dbus_protocol_cl_t *self) {
     (self->body_size) = 4;
     (self->dbusbody) = (char *) calloc(self->body_size, sizeof(char));
 
-    return 0;
+    return SUCCESS;
 }
 
 int dbus_protocol_cl_destroy(dbus_protocol_cl_t *self) {
     free(self->dbusheader);
     free(self->dbusbody);
 
-    return 0;
+    return SUCCESS;
 }
 
-static void get_word_length(client_message_t *client_message, uint32_t index,
-                     uint32_t *word_length, char delimiter){
-    while ((client_message->message)[index] != delimiter) {
+static uint32_t get_word_length(client_message_t *client_message, uint32_t index,
+                     uint32_t *word_length, char* delimiter){
+    while (strchr(delimiter, (client_message->message)[index]) == NULL) {
         (*word_length)++;
         index++;
     }
+
+    return *word_length;
 }
 
 static void set_int32(uint32_t intc, char** buffer, uint32_t *index) {
@@ -44,13 +53,37 @@ static void set_int32(uint32_t intc, char** buffer, uint32_t *index) {
     }
 }
 
-static void set_parameter(dbus_protocol_cl_t *self, 
+static int realloc_body(dbus_protocol_cl_t *self, uint32_t word_length) {
+    char* result = NULL;
+    uint32_t ind = self->body_size;
+
+    result = (char*) realloc(self->dbusbody, 
+                                ((self->body_size) += word_length + 1 + 4));
+
+    //printf("\n\n|| %p, %u, %u, %s ||\n\n", result, word_length, self->body_size, self->dbusbody);
+    
+    /*if (result == NULL) {
+        printf("Error: %s\n", strerror(errno));
+        return ERROR;
+    }*/
+
+    for (; ind < self->body_size; ind++) {
+        (self->dbusbody)[ind] = 0;
+    }
+
+    return SUCCESS;
+}
+
+static int set_parameter(dbus_protocol_cl_t *self, 
 client_message_t *client_message, uint32_t *body_index, uint32_t *msg_index) {
     uint32_t word_length = 0;
-    get_word_length(client_message, *msg_index, &word_length, ',');
+    if (get_word_length(client_message, *msg_index, &word_length, ",)") == 0) {
+        return SUCCESS; //CAMBIAR, NUNCA VA A SER 0
+    }
 
-    (self->dbusbody) = realloc(self->dbusbody, 
-                                ((self->body_size) += word_length + 4));
+    if (realloc_body(self, word_length) == ERROR) {
+        return ERROR;
+    }
     
     set_int32(word_length, &(self->dbusbody), body_index);
 
@@ -61,8 +94,10 @@ client_message_t *client_message, uint32_t *body_index, uint32_t *msg_index) {
     }
 
     (self->dbusbody)[*body_index] = 0;
-    (*msg_index)++;
+    if ((client_message->message)[*msg_index] != ')') (*msg_index)++;
     (*body_index)++;
+
+    return SUCCESS;
 }
 
 static void set_four_chars(dbus_protocol_cl_t *self, uint32_t *header_index, 
@@ -105,13 +140,16 @@ static void set_param_data(dbus_protocol_cl_t *self, uint32_t *header_index,
 }
 
 static void set_word(client_message_t *client_message, dbus_protocol_cl_t *self,
-        uint32_t *header_index, uint32_t *msg_index, uint32_t *word_length) {
-    while (client_message->message[*msg_index] != ' ') {
+        uint32_t *header_index, uint32_t *msg_index, uint32_t word_length) {
+    for (uint32_t i = 0; i < word_length; i++) {
         (self->dbusheader)[*header_index] = client_message->message[*msg_index];
         (*header_index)++;
         (*msg_index)++;
-        (*word_length)++;
     }
+
+    (self->dbusheader)[*header_index] = '\0';
+    (*header_index)++;
+    if (client_message->message[*msg_index] != '(') (*msg_index)++;
 }
 
 static void set_padding(dbus_protocol_cl_t *self, uint32_t *header_index,
@@ -123,29 +161,38 @@ static void set_padding(dbus_protocol_cl_t *self, uint32_t *header_index,
     } while ((*word_length) % 8 == 0);
 }
 
-static void check_header_mem(dbus_protocol_cl_t *self, uint32_t header_index, 
-                                uint32_t word_length, int wordnumber) {
-    if (wordnumber < 4) {
-        if (header_index + word_length + 16 > (self->header_size)) {
-            (self->dbusheader) = realloc(self->dbusheader, 
-                                        ((self->header_size) *= 2));
-        }
-    } else {
-        if (header_index + 16 > (self->header_size)) {
-            (self->dbusheader) = realloc(self->dbusheader, 
-                                        ((self->header_size) += 16));
+static int check_header_mem(dbus_protocol_cl_t *self, uint32_t header_index, 
+                                uint32_t word_length) {
+    uint32_t ind = self->header_size;
+
+    if ((header_index + word_length + 16) > (self->header_size)) {
+        char* result;
+        
+        result = (char*) realloc(self->dbusheader, ((self->header_size) *= 2));
+        
+        if (result == NULL) {
+            printf("Error: %s\n", strerror(errno));
+            return ERROR;
         }
     }
+
+    for (; ind < self->header_size; ind++) {
+        (self->dbusheader)[ind] = 0;
+    }
+
+    return SUCCESS;
 }
 
-static void set_array(client_message_t *client_message, dbus_protocol_cl_t *self,
+static int set_array(client_message_t *client_message, dbus_protocol_cl_t *self,
                         int wordnumber, uint32_t *header_index, 
                         uint32_t *msg_index, uint32_t *array_length) {
     uint32_t word_length = 0;
 
-    get_word_length(client_message, *msg_index, &word_length, ' ');
+    get_word_length(client_message, *msg_index, &word_length, " (");
 
-    check_header_mem(self, *header_index, word_length, wordnumber);
+    if (check_header_mem(self, *header_index, word_length) == ERROR) {
+        return ERROR;
+    }
 
     set_param_data(self, header_index, wordnumber);
 
@@ -155,10 +202,12 @@ static void set_array(client_message_t *client_message, dbus_protocol_cl_t *self
 
     if (wordnumber < 4) {
         set_word(client_message, self, header_index, msg_index, 
-                    &word_length);
+                    word_length);
         set_padding(self, header_index, &word_length);
         (*array_length) += word_length;                    // VER TEMA DE NO SUMAR EL ULTIMO PADDING
     }
+
+    return SUCCESS;
 }
 
 static uint32_t get_body(dbus_protocol_cl_t *self, 

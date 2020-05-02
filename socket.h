@@ -64,7 +64,7 @@ int socket_connect(socket_t *self, const struct sockaddr *address,
  * Devuelve el numero de bytes enviados o -1 si ocurrió un error.
  * Si ocurre un error setea errno.
 */
-int socket_send(socket_t *self, const void *buffer, size_t length, int flags);
+int socket_send(socket_t *self, const char *buffer, size_t length, int flags);
 
 /*
  * Recibe un mensaje de un sockety lo guarda en el buffer. Se debe
@@ -73,7 +73,7 @@ int socket_send(socket_t *self, const void *buffer, size_t length, int flags);
  * disponibles y el peer se cerró o -1 si ocurrió un error.
  * Si ocurre un error setea errno.
 */
-int socket_receive(socket_t *self, void *buffer, size_t length, int flags);
+int socket_receive(socket_t *self, char *buffer, size_t length, int flags);
 
 /*
  * Cierra parte o toda la conexión de la comunicación un socket.

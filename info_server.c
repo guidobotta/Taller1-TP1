@@ -59,4 +59,6 @@ int info_server_establish_connection(info_server_t *self){
                         &(addr_ptr->ai_addrlen), &(self->peersocket)) == -1) {
         printf("Error: %s\n", strerror(errno));
     }
+
+    return 0;
 }
