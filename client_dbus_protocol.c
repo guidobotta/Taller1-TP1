@@ -1,5 +1,5 @@
 #include "client_message.h"
-#include "dbus_protocol_cl.h"
+#include "client_dbus_protocol.h"
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -10,7 +10,7 @@
 #define ERROR 1
 #define SUCCESS 0
 
-int dbus_protocol_cl_create(dbus_protocol_cl_t *self) {
+int client_dbus_protocol_create(client_dbus_protocol_t *self) {
     (self->header_length) = 0;
     (self->header_size) = 128;
     (self->dbusheader) = calloc(self->header_size, sizeof(char));
@@ -22,7 +22,7 @@ int dbus_protocol_cl_create(dbus_protocol_cl_t *self) {
     return SUCCESS;
 }
 
-int dbus_protocol_cl_destroy(dbus_protocol_cl_t *self) {
+int client_dbus_protocol_destroy(client_dbus_protocol_t *self) {
     free(self->dbusheader);
     free(self->dbusbody);
 
@@ -53,7 +53,7 @@ static void set_int32(uint32_t intc, char** buffer, uint32_t *index) {
     }
 }
 
-static int realloc_body(dbus_protocol_cl_t *self, uint32_t word_length) {
+static int realloc_body(client_dbus_protocol_t *self, uint32_t word_length) {
     char* result = NULL;
     uint32_t ind = self->body_size;
 
@@ -76,7 +76,7 @@ static int realloc_body(dbus_protocol_cl_t *self, uint32_t word_length) {
     return SUCCESS;
 }
 
-static int set_parameter(dbus_protocol_cl_t *self, 
+static int set_parameter(client_dbus_protocol_t *self, 
 client_message_t *client_message, uint32_t *body_index, uint32_t *msg_index) {
     uint32_t word_length = 0;
     if (get_word_length(client_message, *msg_index, &word_length, ",)") == 0) {
@@ -102,7 +102,7 @@ client_message_t *client_message, uint32_t *body_index, uint32_t *msg_index) {
     return SUCCESS;
 }
 
-static void set_four_chars(dbus_protocol_cl_t *self, uint32_t *header_index, 
+static void set_four_chars(client_dbus_protocol_t *self, uint32_t *header_index, 
                             char c[4]) {
     for (int i = 0; i < 4; i++) {
         (self->dbusheader)[*header_index] = c[i];
@@ -110,7 +110,7 @@ static void set_four_chars(dbus_protocol_cl_t *self, uint32_t *header_index,
     }
 }
 
-static void set_param_data(dbus_protocol_cl_t *self, uint32_t *header_index, 
+static void set_param_data(client_dbus_protocol_t *self, uint32_t *header_index, 
                             int wordnumber) {
     switch (wordnumber) {
     case 0: ;
@@ -141,7 +141,7 @@ static void set_param_data(dbus_protocol_cl_t *self, uint32_t *header_index,
 
 }
 
-static void set_word(client_message_t *client_message, dbus_protocol_cl_t *self,
+static void set_word(client_message_t *client_message, client_dbus_protocol_t *self,
         uint32_t *header_index, uint32_t *msg_index, uint32_t word_length) {
     for (uint32_t i = 0; i < word_length; i++) {
         (self->dbusheader)[*header_index] = client_message->message[*msg_index];
@@ -152,7 +152,7 @@ static void set_word(client_message_t *client_message, dbus_protocol_cl_t *self,
     if (client_message->message[*msg_index] != ')') (*msg_index)++; //sacar de aca
 }
 
-static void set_padding(dbus_protocol_cl_t *self, uint32_t *header_index,
+static void set_padding(client_dbus_protocol_t *self, uint32_t *header_index,
                         uint32_t *word_length) {
     do {
         (self->dbusheader)[*header_index] = 0;
@@ -161,7 +161,7 @@ static void set_padding(dbus_protocol_cl_t *self, uint32_t *header_index,
     } while ((*word_length) % 8 != 0);
 }
 
-static int check_header_mem(dbus_protocol_cl_t *self, uint32_t header_index, 
+static int check_header_mem(client_dbus_protocol_t *self, uint32_t header_index, 
                                 uint32_t word_length) {
     uint32_t ind = self->header_size;
 
@@ -193,7 +193,7 @@ static void search_next_word(client_message_t *client_message, uint32_t *msg_ind
     if ((client_message->message[*msg_index]) != ')') (*msg_index)++;
 }
 
-static int set_array(client_message_t *client_message, dbus_protocol_cl_t *self,
+static int set_array(client_message_t *client_message, client_dbus_protocol_t *self,
                         int wordnumber, uint32_t *header_index, 
                         uint32_t *msg_index, uint32_t *array_length) {
     uint32_t word_length = 0;
@@ -222,7 +222,7 @@ static int set_array(client_message_t *client_message, dbus_protocol_cl_t *self,
     return SUCCESS;
 }
 
-static uint32_t get_body(dbus_protocol_cl_t *self, 
+static uint32_t get_body(client_dbus_protocol_t *self, 
                             client_message_t *client_message) {
     uint32_t msg_index = 0;
     uint32_t body_index = 0;
@@ -238,7 +238,7 @@ static uint32_t get_body(dbus_protocol_cl_t *self,
     return body_index;
 }
 
-static uint32_t get_header(dbus_protocol_cl_t *self, 
+static uint32_t get_header(client_dbus_protocol_t *self, 
                         client_message_t *client_message, uint32_t msg_id) {
     uint32_t header_index = 0;
 
@@ -267,7 +267,7 @@ static uint32_t get_header(dbus_protocol_cl_t *self,
     return header_index;
 }
 
-int dbus_protocol_cl_message_to_DBUS(dbus_protocol_cl_t *self, 
+int client_dbus_protocol_message_to_DBUS(client_dbus_protocol_t *self, 
                         client_message_t *client_message, uint32_t msg_id) {
     
     (self->body_length) = get_body(self, client_message);

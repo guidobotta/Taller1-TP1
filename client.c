@@ -1,5 +1,5 @@
-#include "info_client.h"
-#include "socket.h"
+#include "client_info.h"
+#include "common_socket.h"
 #include "client_message.h"
 #include <stdio.h>
 #include <string.h>
@@ -8,24 +8,24 @@
 #define ERROR 1
 #define SUCCESS 0
 
-int send_recieve_to_server(FILE* input, info_client_t *info_client){
+int send_recieve_to_server(FILE* input, client_info_t *client_info){
     client_message_t client_message;
     int status;
-    uint32_t id = 1; // pasar a info_client o al client_message
+    uint32_t id = 1; // pasar a client_info o al client_message
 
     while ((status = client_message_create(&client_message, input)) != EOF) {
         if (status == ERROR) {
             return ERROR;
         }
 
-        if (client_message_send(&client_message, info_client, id) == ERROR){
+        if (client_message_send(&client_message, client_info, id) == ERROR){
             client_message_destroy(&client_message);
             return ERROR;
         }
 
         id++; // pasar a otro lado
 
-        if (info_client_recibe_confirmation(info_client) == ERROR) {
+        if (client_info_recibe_confirmation(client_info) == ERROR) {
             client_message_destroy(&client_message);
             return ERROR;
         }
@@ -42,7 +42,7 @@ int send_recieve_to_server(FILE* input, info_client_t *info_client){
     return SUCCESS;
 }
 
-int communicate_to_server(int argc, char const *argv[], info_client_t *info_client){
+int communicate_to_server(int argc, char const *argv[], client_info_t *client_info){
     FILE *input;
     
     if (argc == 4) {
@@ -56,7 +56,7 @@ int communicate_to_server(int argc, char const *argv[], info_client_t *info_clie
         return ERROR;
     }
 
-    if (send_recieve_to_server(input, info_client) == ERROR){
+    if (send_recieve_to_server(input, client_info) == ERROR){
         if (argc == 4) {
             if (fclose(input) == EOF){
                 printf("Error: %s\n", strerror(errno));
@@ -81,23 +81,23 @@ int main(int argc, char const *argv[]) {
         return ERROR;
     }
 
-    info_client_t info_client;
+    client_info_t client_info;
 
-    if (info_client_create(&info_client, argv[1], argv[2]) == ERROR) {
+    if (client_info_create(&client_info, argv[1], argv[2]) == ERROR) {
         return ERROR;
     }
 
-    if (info_client_establish_connection(&info_client) == ERROR) {
-        info_client_destroy(&info_client);
+    if (client_info_establish_connection(&client_info) == ERROR) {
+        client_info_destroy(&client_info);
         return ERROR;
     }
 
-    if (communicate_to_server(argc, argv, &info_client) == ERROR) {
-        info_client_destroy(&info_client);
+    if (communicate_to_server(argc, argv, &client_info) == ERROR) {
+        client_info_destroy(&client_info);
         return ERROR;
     }
 
-    if (info_client_destroy(&info_client) == ERROR) {
+    if (client_info_destroy(&client_info) == ERROR) {
         return ERROR;
     }
 

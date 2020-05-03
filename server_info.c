@@ -1,5 +1,5 @@
-#include "info_server.h"
-#include "socket.h"
+#include "server_info.h"
+#include "common_socket.h"
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -7,7 +7,7 @@
 #define ERROR 1
 #define SUCCESS 0
 
-int info_server_create(info_server_t *self, const char *servicename){
+int server_info_create(server_info_t *self, const char *servicename){
     int status;
 
     self->servicename = servicename;
@@ -28,7 +28,7 @@ int info_server_create(info_server_t *self, const char *servicename){
     return SUCCESS;
 }
 
-int info_server_destroy(info_server_t *self){
+int server_info_destroy(server_info_t *self){
     freeaddrinfo(self->results);
     
     // HACER SHUTDOWN!!!!
@@ -36,7 +36,7 @@ int info_server_destroy(info_server_t *self){
     return SUCCESS;
 }
 
-int info_server_establish_connection(info_server_t *self){
+int server_info_establish_connection(server_info_t *self){
     struct addrinfo *addr_ptr;
 
     // Recorro resultados de getaddrinfo
@@ -71,7 +71,7 @@ int info_server_establish_connection(info_server_t *self){
     return SUCCESS;
 }
 
-int info_server_send_client_confirmation(info_server_t *self) {
+int server_info_send_client_confirmation(server_info_t *self) {
     char* confirmation = "OK";
 
     if (socket_send(&(self->peersocket), confirmation, 3, 0) == -1) {

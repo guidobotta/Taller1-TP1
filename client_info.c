@@ -1,5 +1,4 @@
-#include "info_client.h"
-#include "socket.h"
+#include "client_info.h"
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -7,7 +6,7 @@
 #define ERROR 1
 #define SUCCESS 0
 
-int info_client_create(info_client_t *self, const char *hostname, 
+int client_info_create(client_info_t *self, const char *hostname, 
                         const char *servicename){
     int status;
 
@@ -30,12 +29,12 @@ int info_client_create(info_client_t *self, const char *hostname,
     return SUCCESS;
 }
 
-int info_client_destroy(info_client_t *self){
+int client_info_destroy(client_info_t *self){
     freeaddrinfo(self->results);
     return SUCCESS;
 }
 
-int info_client_establish_connection(info_client_t *self){
+int client_info_establish_connection(client_info_t *self){
     struct addrinfo *addr_ptr;
 
     // Recorro resultados de getaddrinfo
@@ -60,16 +59,16 @@ int info_client_establish_connection(info_client_t *self){
     return SUCCESS;
 }
 
-int info_client_send_message(info_client_t *self, 
-                                dbus_protocol_cl_t *dbus_protocol_cl) {
-    socket_send(&(self->clsocket), dbus_protocol_cl->dbusheader, 
-                dbus_protocol_cl->header_length, 0);
-    socket_send(&(self->clsocket), dbus_protocol_cl->dbusbody, 
-                dbus_protocol_cl->body_length, 0);
+int client_info_send_message(client_info_t *self, 
+                                client_dbus_protocol_t *client_dbus_protocol) {
+    socket_send(&(self->clsocket), client_dbus_protocol->dbusheader, 
+                client_dbus_protocol->header_length, 0);
+    socket_send(&(self->clsocket), client_dbus_protocol->dbusbody, 
+                client_dbus_protocol->body_length, 0);
     return SUCCESS;
 }
 
-int info_client_recibe_confirmation(info_client_t *self) {
+int client_info_recibe_confirmation(client_info_t *self) {
     char confirmation[3];
 
     if (socket_receive(&(self->clsocket), confirmation, 3, 0) == ERROR) {

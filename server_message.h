@@ -1,7 +1,7 @@
 #ifndef __SERVER_MESSAGE_H__
 #define __SERVER_MESSAGE_H__
 
-#include "info_server.h"
+#include "server_info.h"
 #include <stdint.h>
 
 typedef struct server_message {
@@ -10,7 +10,7 @@ typedef struct server_message {
     uint32_t msg_id;
 } server_message_t;
 
-int server_message_create(server_message_t *self, info_server_t *info_server);
+int server_message_create(server_message_t *self, server_info_t *server_info);
 
 int server_message_destroy(server_message_t *self);
 

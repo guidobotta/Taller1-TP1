@@ -1,7 +1,7 @@
 #include "client_message.h"
-#include "msgbuffer.h"
-#include "dbus_protocol_cl.h"
-#include "info_client.h"
+#include "client_msgbuffer.h"
+#include "client_dbus_protocol.h"
+#include "client_info.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -13,13 +13,13 @@
 
 int client_message_create(client_message_t *self, FILE *input) {
     int status;
-    msgbuffer_create(&(self->msgbuffer));
+    client_msgbuffer_create(&(self->client_msgbuffer));
 
     self->msgmemory = 64;
     self->message = calloc(self->msgmemory, sizeof(char));
     self->msglenght = 0;
     
-    status = msgbuffer_getline(&(self->msgbuffer), self, input);
+    status = client_msgbuffer_getline(&(self->client_msgbuffer), self, input);
     
     if ((status == EOF) || (status == ERROR)) {
         return status;
@@ -28,21 +28,21 @@ int client_message_create(client_message_t *self, FILE *input) {
     return SUCCESS;
 }
 
-int client_message_send(client_message_t *self, info_client_t *info_client, 
+int client_message_send(client_message_t *self, client_info_t *client_info, 
                         uint32_t msg_id) {
-    dbus_protocol_cl_t dbus_protocol_cl;
-    dbus_protocol_cl_create(&dbus_protocol_cl);
+    client_dbus_protocol_t client_dbus_protocol;
+    client_dbus_protocol_create(&client_dbus_protocol);
 
-    dbus_protocol_cl_message_to_DBUS(&dbus_protocol_cl, self, msg_id);
-    info_client_send_message(info_client, &dbus_protocol_cl);
+    client_dbus_protocol_message_to_DBUS(&client_dbus_protocol, self, msg_id);
+    client_info_send_message(client_info, &client_dbus_protocol);
 
-    dbus_protocol_cl_destroy(&dbus_protocol_cl);
+    client_dbus_protocol_destroy(&client_dbus_protocol);
 
     return SUCCESS;
 }
 
 int client_message_destroy(client_message_t *self) {
-    msgbuffer_destroy(&(self->msgbuffer));
+    client_msgbuffer_destroy(&(self->client_msgbuffer));
     free(self->message);
     return SUCCESS;
 }

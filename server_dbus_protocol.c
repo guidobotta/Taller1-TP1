@@ -1,17 +1,17 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "dbus_protocol_sv.h"
+#include "server_dbus_protocol.h"
 #include "server_message.h"
-#include "socket.h"
+#include "common_socket.h"
 
 #define ERROR 1
 #define SUCCESS 0
 
-int dbus_protocol_sv_create(dbus_protocol_sv_t *self, 
-                            info_server_t *info_server) {
+int server_dbus_protocol_create(server_dbus_protocol_t *self, 
+                            server_info_t *server_info) {
     (self->dbusheader) = calloc(16, sizeof(char));
 
-    int status = socket_receive(&(info_server->peersocket), self->dbusheader, 16, 0);
+    int status = socket_receive(&(server_info->peersocket), self->dbusheader, 16, 0);
 
     if (status == 0) {
         free(self->dbusheader);
@@ -52,23 +52,23 @@ int dbus_protocol_sv_create(dbus_protocol_sv_t *self,
     (self->body_length) = body_length;
 
     self->dbusheader = realloc(self->dbusheader, self->header_length);
-    socket_receive(&(info_server->peersocket), self->dbusheader,
+    socket_receive(&(server_info->peersocket), self->dbusheader,
                     self->header_length, 0);
 
     self->dbusbody = calloc(self->body_length, sizeof(char));
-    socket_receive(&(info_server->peersocket), self->dbusbody, 
+    socket_receive(&(server_info->peersocket), self->dbusbody, 
                     self->body_length, 0);
 
     return SUCCESS;
 }
 
-int dbus_protocol_sv_destroy(dbus_protocol_sv_t *self) {
+int server_dbus_protocol_destroy(server_dbus_protocol_t *self) {
     free(self->dbusbody);
     free(self->dbusheader);
     return SUCCESS;
 }
 
-int dbus_protocol_sv_DBUS_to_message(dbus_protocol_sv_t *self, 
+int server_dbus_protocol_DBUS_to_message(server_dbus_protocol_t *self, 
                                         server_message_t *server_message) {
     uint32_t dbus_header_index = 0;
     (server_message->msg_length) = 0;

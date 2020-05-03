@@ -1,5 +1,5 @@
-#include "socket.h"
-#include "info_server.h"
+#include "common_socket.h"
+#include "server_info.h"
 #include "server_message.h"
 
 #include <string.h>
@@ -14,11 +14,11 @@
 #define ERROR 1
 #define SUCCESS 0
 
-int communicate_with_client(info_server_t *info_server) {
+int communicate_with_client(server_info_t *server_info) {
     
     server_message_t server_message;
 
-    int status = server_message_create(&server_message, info_server);
+    int status = server_message_create(&server_message, server_info);
 
     while (status != EOF) {
         if (status == ERROR) {
@@ -34,11 +34,11 @@ int communicate_with_client(info_server_t *info_server) {
             return ERROR;
         }
         
-        if (info_server_send_client_confirmation(info_server) == ERROR) {
+        if (server_info_send_client_confirmation(server_info) == ERROR) {
             return ERROR;
         }
 
-        status = server_message_create(&server_message, info_server);
+        status = server_message_create(&server_message, server_info);
     }
 
     return SUCCESS;
@@ -51,23 +51,23 @@ int main(int argc, char const *argv[]) {
         return ERROR;
     }
 
-    info_server_t info_server;
+    server_info_t server_info;
 
-    if (info_server_create(&info_server, argv[1]) == ERROR) {
+    if (server_info_create(&server_info, argv[1]) == ERROR) {
         return ERROR;
     }
     
-    if (info_server_establish_connection(&info_server) == ERROR) {
-        info_server_destroy(&info_server);
+    if (server_info_establish_connection(&server_info) == ERROR) {
+        server_info_destroy(&server_info);
         return ERROR;
     }
 
-    if (communicate_with_client(&info_server) == ERROR) {
-        info_server_destroy(&info_server);
+    if (communicate_with_client(&server_info) == ERROR) {
+        server_info_destroy(&server_info);
         return ERROR;
     }
     
-    if (info_server_destroy(&info_server) == ERROR) {
+    if (server_info_destroy(&server_info) == ERROR) {
         return ERROR;
     }
 

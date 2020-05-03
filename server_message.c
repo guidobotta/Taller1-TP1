@@ -1,24 +1,24 @@
 #include "server_message.h"
-#include "socket.h"
-#include "dbus_protocol_sv.h"
+#include "common_socket.h"
+#include "server_dbus_protocol.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 #define ERROR 1
 #define SUCCESS 0
 
-int server_message_create(server_message_t *self, info_server_t *info_server) {
-    dbus_protocol_sv_t dbus_protocol_sv;
+int server_message_create(server_message_t *self, server_info_t *server_info) {
+    server_dbus_protocol_t server_dbus_protocol;
 
-    int status = dbus_protocol_sv_create(&dbus_protocol_sv, info_server);
+    int status = server_dbus_protocol_create(&server_dbus_protocol, server_info);
 
     if (status == ERROR || status == EOF) {
         return status;
     }
 
-    dbus_protocol_sv_DBUS_to_message(&dbus_protocol_sv, self);
+    server_dbus_protocol_DBUS_to_message(&server_dbus_protocol, self);
 
-    dbus_protocol_sv_destroy(&dbus_protocol_sv);
+    server_dbus_protocol_destroy(&server_dbus_protocol);
     
     return SUCCESS;
 }
