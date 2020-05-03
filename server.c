@@ -18,13 +18,28 @@ int communicate_with_client(info_server_t *info_server) {
     
     server_message_t server_message;
 
-    server_message_create(&server_message, info_server);
-    
-    server_message_print(&server_message);
-    
-    server_message_destroy(&server_message);
-    
-    //enviar ok
+    int status = server_message_create(&server_message, info_server);
+
+    while (status != EOF) {
+        if (status == ERROR) {
+            return ERROR;
+        }
+
+        if (server_message_print(&server_message) == ERROR) {
+            server_message_destroy(&server_message);
+            return ERROR;
+        }
+
+        if (server_message_destroy(&server_message) == ERROR) {
+            return ERROR;
+        }
+        
+        if (info_server_send_client_confirmation(info_server) == ERROR) {
+            return ERROR;
+        }
+
+        status = server_message_create(&server_message, info_server);
+    }
 
     return SUCCESS;
 }
@@ -38,13 +53,23 @@ int main(int argc, char const *argv[]) {
 
     info_server_t info_server;
 
-    if (info_server_create(&info_server, argv[1]) == ERROR) return ERROR;
+    if (info_server_create(&info_server, argv[1]) == ERROR) {
+        return ERROR;
+    }
     
-    if (info_server_establish_connection(&info_server) == ERROR) return ERROR;
+    if (info_server_establish_connection(&info_server) == ERROR) {
+        info_server_destroy(&info_server);
+        return ERROR;
+    }
 
-    if (communicate_with_client(&info_server) == ERROR) return ERROR;
+    if (communicate_with_client(&info_server) == ERROR) {
+        info_server_destroy(&info_server);
+        return ERROR;
+    }
     
-    if (info_server_destroy(&info_server) == ERROR) return ERROR;
+    if (info_server_destroy(&info_server) == ERROR) {
+        return ERROR;
+    }
 
     return SUCCESS;
 }

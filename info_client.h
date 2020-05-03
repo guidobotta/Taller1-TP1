@@ -28,4 +28,6 @@ int info_client_establish_connection(info_client_t *self);
 int info_client_send_message(info_client_t *self, 
                                 dbus_protocol_cl_t *dbus_protocol_cl);
 
+int info_client_recibe_confirmation(info_client_t *self);
+
 #endif

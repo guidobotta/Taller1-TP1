@@ -21,4 +21,6 @@ int info_server_destroy(info_server_t *self);
 
 int info_server_establish_connection(info_server_t *self);
 
+int info_server_send_client_confirmation(info_server_t *self);
+
 #endif

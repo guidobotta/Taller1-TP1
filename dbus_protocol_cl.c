@@ -57,15 +57,17 @@ static int realloc_body(dbus_protocol_cl_t *self, uint32_t word_length) {
     char* result = NULL;
     uint32_t ind = self->body_size;
 
-    result = (char*) realloc(self->dbusbody, 
-                                ((self->body_size) += word_length + 1 + 4));
+    (self->body_size) += word_length + 1 + 4;
+
+    result = (char*) realloc(self->dbusbody, self->body_size);
 
     //printf("\n\n|| %p, %u, %u, %s ||\n\n", result, word_length, self->body_size, self->dbusbody);
     
-    /*if (result == NULL) {
-        printf("Error: %s\n", strerror(errno));
-        return ERROR;
-    }*/
+    if (result == NULL) {
+        printf("Whatafac");
+    //    printf("Error: %s\n", strerror(errno));
+    //    return ERROR;
+    } /*cambiar esto*/ else self->dbusbody = result;
 
     for (; ind < self->body_size; ind++) {
         (self->dbusbody)[ind] = 0;
@@ -147,9 +149,7 @@ static void set_word(client_message_t *client_message, dbus_protocol_cl_t *self,
         (*msg_index)++;
     }
 
-    (self->dbusheader)[*header_index] = '\0';
-    (*header_index)++;
-    if (client_message->message[*msg_index] != '(') (*msg_index)++;
+    if (client_message->message[*msg_index] != ')') (*msg_index)++; //sacar de aca
 }
 
 static void set_padding(dbus_protocol_cl_t *self, uint32_t *header_index,
@@ -158,7 +158,7 @@ static void set_padding(dbus_protocol_cl_t *self, uint32_t *header_index,
         (self->dbusheader)[*header_index] = 0;
         (*header_index)++;
         (*word_length)++;
-    } while ((*word_length) % 8 == 0);
+    } while ((*word_length) % 8 != 0);
 }
 
 static int check_header_mem(dbus_protocol_cl_t *self, uint32_t header_index, 
@@ -168,11 +168,14 @@ static int check_header_mem(dbus_protocol_cl_t *self, uint32_t header_index,
     if ((header_index + word_length + 16) > (self->header_size)) {
         char* result;
         
-        result = (char*) realloc(self->dbusheader, ((self->header_size) *= 2));
+        (self->header_size) *= 2;
+        result = (char*) realloc(self->dbusheader, self->header_size);
         
         if (result == NULL) {
             printf("Error: %s\n", strerror(errno));
             return ERROR;
+        } else {
+            (self->dbusheader) = result;
         }
     }
 
@@ -183,12 +186,19 @@ static int check_header_mem(dbus_protocol_cl_t *self, uint32_t header_index,
     return SUCCESS;
 }
 
+static void search_next_word(client_message_t *client_message, uint32_t *msg_index) {
+    while (strchr(",)", (client_message->message)[*msg_index]) == NULL) {
+        (*msg_index)++;
+    }
+    if ((client_message->message[*msg_index]) != ')') (*msg_index)++;
+}
+
 static int set_array(client_message_t *client_message, dbus_protocol_cl_t *self,
                         int wordnumber, uint32_t *header_index, 
                         uint32_t *msg_index, uint32_t *array_length) {
     uint32_t word_length = 0;
 
-    get_word_length(client_message, *msg_index, &word_length, " (");
+    get_word_length(client_message, *msg_index, &word_length, " (,)");
 
     if (check_header_mem(self, *header_index, word_length) == ERROR) {
         return ERROR;
@@ -205,6 +215,8 @@ static int set_array(client_message_t *client_message, dbus_protocol_cl_t *self,
                     word_length);
         set_padding(self, header_index, &word_length);
         (*array_length) += word_length;                    // VER TEMA DE NO SUMAR EL ULTIMO PADDING
+    } else {
+        search_next_word(client_message, msg_index);
     }
 
     return SUCCESS;
@@ -233,7 +245,7 @@ static uint32_t get_header(dbus_protocol_cl_t *self,
     char c[4] = {'l', 1, 0, 1};
     set_four_chars(self, &header_index, c);
 
-    set_int32((self->body_size), &(self->dbusheader), &header_index);
+    set_int32((self->body_length), &(self->dbusheader), &header_index);
 
     set_int32(msg_id, &(self->dbusheader), &header_index);
 
@@ -244,7 +256,7 @@ static uint32_t get_header(dbus_protocol_cl_t *self,
 
     uint32_t msg_index = 0;
 
-    for (int wordnumber = 0; (client_message->message)[msg_index] != '('; 
+    for (int wordnumber = 0; (client_message->message)[msg_index] != ')'; 
             wordnumber++) {
         set_array(client_message, self, wordnumber, &header_index, &msg_index, 
                     &array_length);

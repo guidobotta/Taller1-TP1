@@ -11,7 +11,7 @@
 int send_recieve_to_server(FILE* input, info_client_t *info_client){
     client_message_t client_message;
     int status;
-    uint32_t id = 0; // pasar a info_client o al client_message
+    uint32_t id = 1; // pasar a info_client o al client_message
 
     while ((status = client_message_create(&client_message, input)) != EOF) {
         if (status == ERROR) {
@@ -23,13 +23,20 @@ int send_recieve_to_server(FILE* input, info_client_t *info_client){
             return ERROR;
         }
 
-        id++;
+        id++; // pasar a otro lado
 
-        //RECIBIR E IMPRIMIR
+        if (info_client_recibe_confirmation(info_client) == ERROR) {
+            client_message_destroy(&client_message);
+            return ERROR;
+        }
 
         if (client_message_destroy(&client_message) == ERROR) {
             return ERROR;
         }
+    }
+
+    if (client_message_destroy(&client_message) == ERROR) {
+        return ERROR;
     }
 
     return SUCCESS;

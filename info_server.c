@@ -4,6 +4,9 @@
 #include <string.h>
 #include <errno.h>
 
+#define ERROR 1
+#define SUCCESS 0
+
 int info_server_create(info_server_t *self, const char *servicename){
     int status;
 
@@ -19,15 +22,18 @@ int info_server_create(info_server_t *self, const char *servicename){
 
     if (status != 0) {
         printf("Error in getaddrinfo: %s\n", gai_strerror(status));
-        return 1;
+        return ERROR;
     }
 
-    return 0;
+    return SUCCESS;
 }
 
 int info_server_destroy(info_server_t *self){
     freeaddrinfo(self->results);
-    return 0;
+    
+    // HACER SHUTDOWN!!!!
+    
+    return SUCCESS;
 }
 
 int info_server_establish_connection(info_server_t *self){
@@ -49,16 +55,28 @@ int info_server_establish_connection(info_server_t *self){
     
     if (addr_ptr == NULL){
         printf("Error: Could not bind.");
-        return 1;
+        return ERROR;
     }
 
     if (socket_listen(&(self->blsocket), 10) == -1) {
         printf("Error: %s\n", strerror(errno));
+        return ERROR;
     }
     if (socket_accept(&(self->blsocket), addr_ptr->ai_addr, 
                         &(addr_ptr->ai_addrlen), &(self->peersocket)) == -1) {
         printf("Error: %s\n", strerror(errno));
+        return ERROR;
     }
 
-    return 0;
+    return SUCCESS;
+}
+
+int info_server_send_client_confirmation(info_server_t *self) {
+    char* confirmation = "OK";
+
+    if (socket_send(&(self->peersocket), confirmation, 3, 0) == -1) {
+        return ERROR;
+    }
+
+    return SUCCESS;
 }

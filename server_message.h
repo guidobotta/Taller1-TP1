@@ -7,6 +7,7 @@
 typedef struct server_message {
     char* message;
     uint32_t msg_length;
+    uint32_t msg_id;
 } server_message_t;
 
 int server_message_create(server_message_t *self, info_server_t *info_server);

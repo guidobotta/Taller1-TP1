@@ -10,6 +10,7 @@ typedef struct dbus_protocol_sv {
     uint32_t header_length;
     char* dbusbody;
     uint32_t body_length;
+    uint32_t id;
 } dbus_protocol_sv_t;
 
 int dbus_protocol_sv_create(dbus_protocol_sv_t *self, 

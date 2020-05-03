@@ -68,3 +68,15 @@ int info_client_send_message(info_client_t *self,
                 dbus_protocol_cl->body_length, 0);
     return SUCCESS;
 }
+
+int info_client_recibe_confirmation(info_client_t *self) {
+    char confirmation[3];
+
+    if (socket_receive(&(self->clsocket), confirmation, 3, 0) == ERROR) {
+        return ERROR;
+    }
+
+    printf("%s\n", confirmation);
+
+    return SUCCESS;
+}
