@@ -152,7 +152,8 @@ static void set_word(client_message_t *client_message,
         (*msg_index)++;
     }
 
-    if (client_message->message[*msg_index] != ')') (*msg_index)++; //sacar de aca
+    if (client_message->message[*msg_index] != ')') (*msg_index)++; 
+    //sacar de aca
 }
 
 static void set_padding(client_dbus_protocol_t *self, uint32_t *header_index,

@@ -98,5 +98,7 @@ int server_message_print(server_message_t *self) {
         word_number++;
     }
 
+    printf("\n");
+
     return SUCCESS;
 }
