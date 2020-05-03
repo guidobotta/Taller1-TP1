@@ -11,7 +11,8 @@ int server_dbus_protocol_create(server_dbus_protocol_t *self,
                             server_info_t *server_info) {
     (self->dbusheader) = calloc(16, sizeof(char));
 
-    int status = socket_receive(&(server_info->peersocket), self->dbusheader, 16, 0);
+    int status = socket_receive(&(server_info->peersocket), 
+                                self->dbusheader, 16, 0);
 
     if (status == 0) {
         free(self->dbusheader);
@@ -98,7 +99,8 @@ int server_dbus_protocol_DBUS_to_message(server_dbus_protocol_t *self,
         param_size++;
 
         for (uint32_t i = 0; i < param_size; i++) {
-            (server_message->message)[server_message->msg_length] = (self->dbusheader)[dbus_header_index];
+            (server_message->message)[server_message->msg_length] = 
+                                    (self->dbusheader)[dbus_header_index];
             dbus_header_index++;
             (server_message->msg_length)++;
         }
@@ -127,7 +129,8 @@ int server_dbus_protocol_DBUS_to_message(server_dbus_protocol_t *self,
         param_size++;
 
         for (uint32_t i = 0; i < param_size; i++) {
-            (server_message->message)[server_message->msg_length] = (self->dbusbody)[dbus_body_index];
+            (server_message->message)[server_message->msg_length] = 
+                                        (self->dbusbody)[dbus_body_index];
             dbus_body_index++;
             (server_message->msg_length)++;
         }

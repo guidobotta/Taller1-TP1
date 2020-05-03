@@ -23,9 +23,7 @@ int send_recieve_to_server(FILE* input, client_info_t *client_info){
             return ERROR;
         }
 
-        id++; // pasar a otro lado
-
-        if (client_info_recibe_confirmation(client_info) == ERROR) {
+        if (client_info_recibe_confirmation(client_info, id) == ERROR) {
             client_message_destroy(&client_message);
             return ERROR;
         }
@@ -33,6 +31,8 @@ int send_recieve_to_server(FILE* input, client_info_t *client_info){
         if (client_message_destroy(&client_message) == ERROR) {
             return ERROR;
         }
+
+        id++; // pasar a otro lado
     }
 
     if (client_message_destroy(&client_message) == ERROR) {
@@ -42,7 +42,8 @@ int send_recieve_to_server(FILE* input, client_info_t *client_info){
     return SUCCESS;
 }
 
-int communicate_to_server(int argc, char const *argv[], client_info_t *client_info){
+int communicate_to_server(int argc, char const *argv[], 
+                            client_info_t *client_info){
     FILE *input;
     
     if (argc == 4) {

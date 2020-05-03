@@ -28,6 +28,6 @@ int client_info_establish_connection(client_info_t *self);
 int client_info_send_message(client_info_t *self, 
                                 client_dbus_protocol_t *client_dbus_protocol);
 
-int client_info_recibe_confirmation(client_info_t *self);
+int client_info_recibe_confirmation(client_info_t *self, uint32_t id);
 
 #endif

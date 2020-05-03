@@ -12,6 +12,7 @@ int client_msgbuffer_create(client_msgbuffer_t *self);
 
 int client_msgbuffer_destroy(client_msgbuffer_t *self);
 
-int client_msgbuffer_getline(client_msgbuffer_t *self, client_message_t *msg, FILE *input);
+int client_msgbuffer_getline(client_msgbuffer_t *self, client_message_t *msg, 
+                                FILE *input);
 
 #endif

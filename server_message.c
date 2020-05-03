@@ -10,7 +10,8 @@
 int server_message_create(server_message_t *self, server_info_t *server_info) {
     server_dbus_protocol_t server_dbus_protocol;
 
-    int status = server_dbus_protocol_create(&server_dbus_protocol, server_info);
+    int status = server_dbus_protocol_create(&server_dbus_protocol, 
+                                                server_info);
 
     if (status == ERROR || status == EOF) {
         return status;
@@ -29,7 +30,8 @@ int server_message_destroy(server_message_t *self) {
     return SUCCESS;
 }
 
-static void get_word_length(server_message_t *self, uint32_t *word_length, uint32_t msg_index) {
+static void get_word_length(server_message_t *self, uint32_t *word_length, 
+                            uint32_t msg_index) {
     while ((self->message)[msg_index] != '\0') {
         (*word_length)++;
         msg_index++;
@@ -62,7 +64,7 @@ static void print_word(uint32_t word_number, char *word) {
         break;
 
     case 1:
-        printf("* Path: %s\n", word);
+        printf("* Ruta: %s\n", word);
         break;
 
     case 2:
@@ -70,14 +72,14 @@ static void print_word(uint32_t word_number, char *word) {
         break;
 
     case 3:
-        printf("* Método: %s\n", word);
+        printf("* Metodo: %s\n", word);
         break;
 
     case 4:
-        printf("* Parámetros:\n");
+        printf("* Parametros:\n");
 
     default:
-        printf("\t* %s\n", word);
+        printf("    * %s\n", word);
         break;
     }
 }

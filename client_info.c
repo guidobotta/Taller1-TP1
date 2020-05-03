@@ -68,14 +68,14 @@ int client_info_send_message(client_info_t *self,
     return SUCCESS;
 }
 
-int client_info_recibe_confirmation(client_info_t *self) {
+int client_info_recibe_confirmation(client_info_t *self, uint32_t id) {
     char confirmation[3];
 
     if (socket_receive(&(self->clsocket), confirmation, 3, 0) == ERROR) {
         return ERROR;
     }
 
-    printf("%s\n", confirmation);
+    printf("0x%08x: %s\n", id, confirmation);
 
     return SUCCESS;
 }

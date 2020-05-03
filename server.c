@@ -15,7 +15,6 @@
 #define SUCCESS 0
 
 int communicate_with_client(server_info_t *server_info) {
-    
     server_message_t server_message;
 
     int status = server_message_create(&server_message, server_info);
@@ -45,7 +44,6 @@ int communicate_with_client(server_info_t *server_info) {
 }
 
 int main(int argc, char const *argv[]) {
-    
     if (argc != 2) {
         printf("Error en la cantidad de parámetros.");
         return ERROR;
