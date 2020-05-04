@@ -17,9 +17,15 @@ int server_message_create(server_message_t *self, server_info_t *server_info) {
         return status;
     }
 
-    server_dbus_protocol_DBUS_to_message(&server_dbus_protocol, self);
+    if (server_dbus_protocol_DBUS_to_message(&server_dbus_protocol, self) == 
+        ERROR) {
+        server_dbus_protocol_destroy(&server_dbus_protocol);
+        return ERROR;
+    }
 
-    server_dbus_protocol_destroy(&server_dbus_protocol);
+    if (server_dbus_protocol_destroy(&server_dbus_protocol) == ERROR) {
+        return ERROR;
+    }
     
     return SUCCESS;
 }

@@ -262,11 +262,11 @@ static uint32_t get_header(client_dbus_protocol_t *self,
     set_int32((self->body_length), &(self->dbusheader), &header_index);
     set_int32(msg_id, &(self->dbusheader), &header_index);
     
-    header_index += 4;
-
     uint32_t array_length = 0;
     uint32_t array_length_index = header_index;
     uint32_t msg_index = 0;
+    
+    header_index += 4;
 
     for (int wordnumber = 0; (client_message->message)[msg_index] != ')'; 
             wordnumber++) {
