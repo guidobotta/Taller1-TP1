@@ -13,7 +13,9 @@
 
 int client_message_create(client_message_t *self, FILE *input) {
     int status;
-    client_msgbuffer_create(&(self->client_msgbuffer));
+    if (client_msgbuffer_create(&(self->client_msgbuffer)) == ERROR) {
+        return ERROR;
+    }
 
     self->msgmemory = 64;
     self->message = calloc(self->msgmemory, sizeof(char));
@@ -31,27 +33,48 @@ int client_message_create(client_message_t *self, FILE *input) {
 int client_message_send(client_message_t *self, client_info_t *client_info, 
                         uint32_t msg_id) {
     client_dbus_protocol_t client_dbus_protocol;
-    client_dbus_protocol_create(&client_dbus_protocol);
+    if (client_dbus_protocol_create(&client_dbus_protocol) == ERROR) {
+        return ERROR;
+    }
 
-    client_dbus_protocol_message_to_DBUS(&client_dbus_protocol, self, msg_id);
-    client_info_send_message(client_info, &client_dbus_protocol);
+    if (client_dbus_protocol_message_to_DBUS(&client_dbus_protocol, self, 
+                                                msg_id) == ERROR) {
+        client_dbus_protocol_destroy(&client_dbus_protocol);
+        return ERROR;
+    }
 
-    client_dbus_protocol_destroy(&client_dbus_protocol);
+    if (client_info_send_message(client_info, &client_dbus_protocol) == 
+        ERROR) {
+        client_dbus_protocol_destroy(&client_dbus_protocol);
+        return ERROR;
+    }
+
+    if (client_dbus_protocol_destroy(&client_dbus_protocol) == ERROR) {
+        return ERROR;
+    }
 
     return SUCCESS;
 }
 
 int client_message_destroy(client_message_t *self) {
-    client_msgbuffer_destroy(&(self->client_msgbuffer));
+    if (client_msgbuffer_destroy(&(self->client_msgbuffer)) == ERROR) {
+        return ERROR;
+    }
+
     free(self->message);
+    
     return SUCCESS;
 }
 
 int client_message_realloc(client_message_t *self) {
-    self->message = realloc(self->message, ((self->msgmemory) += 64));
-    if (self->message == NULL){
+    char* result = realloc(self->message, ((self->msgmemory) += 64));
+
+    if (result == NULL){
         printf("Error: %s\n", strerror(errno));
         return ERROR;
+    } else {
+        self->message = result;
     }
+
     return SUCCESS;
 }

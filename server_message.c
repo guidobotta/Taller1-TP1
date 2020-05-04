@@ -38,12 +38,16 @@ static void get_word_length(server_message_t *self, uint32_t *word_length,
     }
 }
 
-static void get_word(server_message_t *self, char **word, uint32_t *msg_index) {
+static int get_word(server_message_t *self, char **word, uint32_t *msg_index) {
     uint32_t word_length = 0;
     
     get_word_length(self, &word_length, *msg_index);
 
     (*word) = calloc(word_length + 1, sizeof(char));
+
+    if (*word == NULL) {
+        return ERROR;
+    }
 
     for (uint32_t i = 0; i < word_length; i++) {
         (*word)[i] = (self->message)[*msg_index];
@@ -55,6 +59,8 @@ static void get_word(server_message_t *self, char **word, uint32_t *msg_index) {
             (self->message[*msg_index] == '\0')) {
         (*msg_index)++;
     }
+
+    return SUCCESS;
 }
 
 static void print_word(uint32_t word_number, char *word) {
@@ -92,7 +98,9 @@ int server_message_print(server_message_t *self) {
     printf("* Id: 0x%08x\n", self->msg_id);
     
     while (msg_index < (self->msg_length)) {
-        get_word(self, &word, &msg_index);
+        if (get_word(self, &word, &msg_index) == ERROR) {
+            return ERROR;
+        }
         print_word(word_number, word);
         free(word);
         word_number++;

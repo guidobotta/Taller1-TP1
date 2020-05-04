@@ -11,19 +11,19 @@
 int send_recieve_to_server(FILE* input, client_info_t *client_info){
     client_message_t client_message;
     int status;
-    uint32_t id = 1; // pasar a client_info o al client_message
+    uint32_t msg_id = 1;
 
     while ((status = client_message_create(&client_message, input)) != EOF) {
         if (status == ERROR) {
             return ERROR;
         }
 
-        if (client_message_send(&client_message, client_info, id) == ERROR){
+        if (client_message_send(&client_message, client_info, msg_id) == ERROR){
             client_message_destroy(&client_message);
             return ERROR;
         }
 
-        if (client_info_recibe_confirmation(client_info, id) == ERROR) {
+        if (client_info_recibe_confirmation(client_info, msg_id) == ERROR) {
             client_message_destroy(&client_message);
             return ERROR;
         }
@@ -32,7 +32,7 @@ int send_recieve_to_server(FILE* input, client_info_t *client_info){
             return ERROR;
         }
 
-        id++; // pasar a otro lado
+        msg_id++;
     }
 
     if (client_message_destroy(&client_message) == ERROR) {

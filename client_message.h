@@ -14,12 +14,31 @@ struct client_message {
     client_msgbuffer_t client_msgbuffer;
 };
 
+/*
+ * Inicializa el objeto client_message. Recibe el file
+ * de donde se leera el mensaje.
+ * Devuelve 1 en caso de error o 0 en caso de éxito.
+*/
 int client_message_create(client_message_t *self, FILE *input);
 
+/*
+ * Destruye el objeto client_message.
+ * Devuelve 1 en caso de error o 0 en caso de éxito.
+*/
 int client_message_destroy(client_message_t *self);
 
+/*
+ * Relocaliza el mensaje en un mayor espacio de memoria.
+ * Devuelve 1 en caso de error o 0 en caso de éxito.
+*/
 int client_message_realloc(client_message_t *self);
 
+/*
+ * Convierte el mensaje al formato del protocolo DBUS. Luego
+ * envia el mensaje al servidor que se encuentra conectado
+ * client_info.
+ * Devuelve 1 en caso de error o 0 en caso de éxito.
+*/
 int client_message_send(client_message_t *self, client_info_t *client_info, 
                         uint32_t msg_id);
 

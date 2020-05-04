@@ -4,6 +4,7 @@
 #include <string.h>
 #include <errno.h>
 
+#define SOCKET_ERROR -1
 #define ERROR 1
 #define SUCCESS 0
 
@@ -31,7 +32,25 @@ int server_info_create(server_info_t *self, const char *servicename){
 int server_info_destroy(server_info_t *self){
     freeaddrinfo(self->results);
     
-    // HACER SHUTDOWN!!!!
+    if (socket_shutdown((&self->blsocket), SHUT_RDWR) == SOCKET_ERROR) {
+        printf("Error: %s\n", strerror(errno));
+        return ERROR;
+    }
+
+    if (socket_shutdown((&self->peersocket), SHUT_RDWR) == SOCKET_ERROR) {
+        printf("Error: %s\n", strerror(errno));
+        return ERROR;
+    }
+
+    if (socket_destroy((&self->blsocket)) == SOCKET_ERROR) {
+        printf("Error: %s\n", strerror(errno));
+        return ERROR;
+    }
+
+    if (socket_destroy((&self->peersocket)) == SOCKET_ERROR) {
+        printf("Error: %s\n", strerror(errno));
+        return ERROR;
+    }
     
     return SUCCESS;
 }
@@ -42,12 +61,14 @@ int server_info_establish_connection(server_info_t *self){
     // Recorro resultados de getaddrinfo
     for (addr_ptr = (self->results); addr_ptr != NULL; 
             addr_ptr = addr_ptr->ai_next) {
-        if (socket_create(&(self->blsocket)) == -1) {
+        if (socket_create(&(self->blsocket)) == SOCKET_ERROR) {
             printf("Error: %s\n", strerror(errno));
         } else {
             if (socket_bind(&(self->blsocket), addr_ptr->ai_addr, 
-                                addr_ptr->ai_addrlen) != -1) {
+                                addr_ptr->ai_addrlen) != SOCKET_ERROR) {
                 break;
+            } else {
+                printf("Error: %s\n", strerror(errno));
             }
             socket_destroy(&(self->blsocket));
         }
@@ -58,12 +79,12 @@ int server_info_establish_connection(server_info_t *self){
         return ERROR;
     }
 
-    if (socket_listen(&(self->blsocket), 10) == -1) {
+    if (socket_listen(&(self->blsocket), 10) == SOCKET_ERROR) {
         printf("Error: %s\n", strerror(errno));
         return ERROR;
     }
     if (socket_accept(&(self->blsocket), addr_ptr->ai_addr, 
-                        &(addr_ptr->ai_addrlen), &(self->peersocket)) == -1) {
+            &(addr_ptr->ai_addrlen), &(self->peersocket)) == SOCKET_ERROR) {
         printf("Error: %s\n", strerror(errno));
         return ERROR;
     }

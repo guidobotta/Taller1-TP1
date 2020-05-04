@@ -3,6 +3,7 @@
 #include <string.h>
 #include <errno.h>
 
+#define SOCKET_ERROR -1
 #define ERROR 1
 #define SUCCESS 0
 
@@ -31,6 +32,17 @@ int client_info_create(client_info_t *self, const char *hostname,
 
 int client_info_destroy(client_info_t *self){
     freeaddrinfo(self->results);
+
+    if (socket_shutdown((&self->clsocket), SHUT_RDWR) == SOCKET_ERROR) {
+        printf("Error: %s\n", strerror(errno));
+        return ERROR;
+    }
+
+    if (socket_destroy((&self->clsocket)) == SOCKET_ERROR) {
+        printf("Error: %s\n", strerror(errno));
+        return ERROR;
+    }
+
     return SUCCESS;
 }
 
@@ -40,14 +52,18 @@ int client_info_establish_connection(client_info_t *self){
     // Recorro resultados de getaddrinfo
     for (addr_ptr = (self->results); addr_ptr != NULL; 
             addr_ptr = addr_ptr->ai_next) {
-        if (socket_create(&(self->clsocket)) == -1) {
+        if (socket_create(&(self->clsocket)) == SOCKET_ERROR) {
             printf("Error: %s\n", strerror(errno));
         } else {
             if (socket_connect(&(self->clsocket), addr_ptr->ai_addr, 
-                addr_ptr->ai_addrlen) != -1) {
+                addr_ptr->ai_addrlen) != SOCKET_ERROR) {
                 break;
+            } else {
+                printf("Error: %s\n", strerror(errno));
             }
-            socket_destroy(&(self->clsocket));
+            if (socket_destroy(&(self->clsocket)) == SOCKET_ERROR) {
+                printf("Error: %s\n", strerror(errno));
+            }
         }
     }
     
@@ -61,17 +77,27 @@ int client_info_establish_connection(client_info_t *self){
 
 int client_info_send_message(client_info_t *self, 
                                 client_dbus_protocol_t *client_dbus_protocol) {
-    socket_send(&(self->clsocket), client_dbus_protocol->dbusheader, 
-                client_dbus_protocol->header_length, 0);
-    socket_send(&(self->clsocket), client_dbus_protocol->dbusbody, 
-                client_dbus_protocol->body_length, 0);
+    if (socket_send(&(self->clsocket), client_dbus_protocol->dbusheader, 
+                client_dbus_protocol->header_length, 0) == SOCKET_ERROR) {
+        printf("Error: %s\n", strerror(errno));
+        return ERROR;
+    }
+
+    if (socket_send(&(self->clsocket), client_dbus_protocol->dbusbody, 
+                client_dbus_protocol->body_length, 0) == SOCKET_ERROR) {
+        
+        printf("Error: %s\n", strerror(errno));return ERROR;
+    }
+
     return SUCCESS;
 }
 
 int client_info_recibe_confirmation(client_info_t *self, uint32_t id) {
     char confirmation[3];
 
-    if (socket_receive(&(self->clsocket), confirmation, 3, 0) == ERROR) {
+    if (socket_receive(&(self->clsocket), confirmation, 3, 0) == 
+                        SOCKET_ERROR) {
+        printf("Error: %s\n", strerror(errno));
         return ERROR;
     }
 
