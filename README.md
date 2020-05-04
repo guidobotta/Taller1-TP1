@@ -49,18 +49,51 @@ int socket_receive(socket_t *self, char *buffer, size_t length, int flags){
 
 ## Protocolo DBUS
 
-&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp; El protocolo que se utilizó en este trabajo es una versión simplificada del protocolo DBUS. Este protocolo simplificado se utiliza para enviar de forma específica los mensajes a través de la comunicación de sockets.
+
+&nbsp;&nbsp;&nbsp;&nbsp; El protocolo tiene dos partes:
+
+* **Header**: El header lleva la información del endianness, el tipo de mensaje, flags, longitud del cuerpo, numero de serie del mensaje y un array con información de los distintos parámetros. El formato del header es el siguiente:
+
+```
+        BYTE, BYTE, BYTE, BYTE, UINT32, UINT32, ARRAY of STRUCT of (BYTE,VARIANT)
+```
+
+1. 1er byte: indica el endianness. 'l' para little-endian, 'b' para big-endian.
+
+2.  2do byte: indica el tipo de mensaje. En este trabajo se utilizó solo el tipo método que es el 0x01.
+
+3. 3er byte: indica flags, no utilizados en este trabajo.
+
+4. 4to byte: versión del protocolo.
+
+5. 1er entero: longitud en bytes del cuerpo​.
+
+6. 2do entero: un número serie incremental para identificar el mensaje.
+
+7. Array: un array de longitud variable con los parámetros necesarios según el tipo de mensaje. Posee el siguiente formato:
+
+    - Un entero UINT32 con la longitud del array.
+
+    - Por cada parámetro:
+
+        - Un byte indicando el tipo de parámetro.
+        - Un byte en 1.
+        - Un byte indicando el tipo de dato.
+        - Longitud del dato en bytes. La longitud no toma en cuenta el padding del último elemento.
+        - El parámetro con su respectivo padding. Este último elemento no se debe agregar si el parámetro es una firma.
+
+* **Body**: El body lleva la información de las firmas. Se compone de un entero UINT32 con la longitud de la firma seguido de la firma terminada en `'\0'` sin padding.
 
 ## Aplicación Cliente
 
-&nbsp;&nbsp;&nbsp;&nbsp; La aplicación cliente tiene la función de conectarse a un servidor, de ip y puerto pasados por parámetro al ejecutar, recibir uno o más mensajes, provenientes de una entrada `stdin` o de un archivo de entrada especificado en la ejecución, con un formato específico, convertir el mensaje en bytes con el formato correspondiente al protocolo DBUS, y enviar dicho mensaje formateado al servidor. Si el servidor recibió correctamente el mensaje, el cliente recibirá un mensaje `'OK\n'` proveniente de dicho servidor.
+&nbsp;&nbsp;&nbsp;&nbsp; La aplicación cliente tiene la función de conectarse a un servidor, de ip y puerto pasados por parámetro al ejecutar; recibir uno o más mensajes, provenientes de una entrada `stdin` o de un archivo de entrada especificado en la ejecución; convertir el mensaje en bytes con el formato correspondiente al protocolo DBUS; y enviar dicho mensaje formateado al servidor. Si el servidor recibió correctamente el mensaje, el cliente recibirá un mensaje `'OK\n'` proveniente de dicho servidor.
 
 &nbsp;&nbsp;&nbsp;&nbsp; La forma de ejecución de la aplicación cliente es la siguiente:
 
 ```
 ./client <host> <puerto> [<archivo de entrada>]
 ```
->./client \<host> \<puerto> \[\<archivo de entrada>]
 
 ## Aplicación Servidor
 
