@@ -87,7 +87,7 @@ int socket_receive(socket_t *self, char *buffer, size_t length, int flags){
 
 ## Aplicación Cliente
 
-&nbsp;&nbsp;&nbsp;&nbsp; La aplicación cliente tiene la función de conectarse a un servidor, de ip y puerto pasados por parámetro al ejecutar; recibir uno o más mensajes, provenientes de una entrada `stdin` o de un archivo de entrada especificado en la ejecución; convertir el mensaje en bytes con el formato correspondiente al protocolo DBUS; y enviar dicho mensaje formateado al servidor. Si el servidor recibió correctamente el mensaje, el cliente recibirá un mensaje `'OK\n'` proveniente de dicho servidor.
+&nbsp;&nbsp;&nbsp;&nbsp; La aplicación cliente tiene la función de conectarse a un servidor, de ip y puerto pasados por parámetro al ejecutar; recibir uno o más mensajes, provenientes de una entrada `stdin` o de un archivo de entrada especificado en la ejecución; convertir el mensaje en bytes con el formato correspondiente al protocolo DBUS; y enviar dicho mensaje formateado al servidor. Si el servidor recibió correctamente el mensaje, el cliente recibirá e imprimira un mensaje `'OK\n'` proveniente de dicho servidor.
 
 &nbsp;&nbsp;&nbsp;&nbsp; La forma de ejecución de la aplicación cliente es la siguiente:
 
@@ -95,9 +95,63 @@ int socket_receive(socket_t *self, char *buffer, size_t length, int flags){
 ./client <host> <puerto> [<archivo de entrada>]
 ```
 
+&nbsp;&nbsp;&nbsp;&nbsp; La estructura del cliente esta formada por diferentes objetos:
+
+- socket: es un tda socket que facilita la utilización del socket para el usuario.
+
+- client_info: contiene la información del socket, ip y puerto para manejar la conexión entre el cliente y el servidor.
+
+- client_message: contiene la información del mensaje enviado por el usuario. Este además necesita del client_info para poder enviar el mensaje al servidor.
+
+- client_msgbuffer: es un buffer utilizado por el client_message para recibir la entrada del usuario. Se encarga de leer de a 32 bytes la entrada y de almacenar la línea leida en el cliente_message.
+
+- client_dbus_protocol: es un objeto protocolo que se encarga de convertir el mensaje de client_message a un formato soportado por el protocolo DBUS.
+
+# PONER ESQUEMA
+
+&nbsp;&nbsp;&nbsp;&nbsp; No leer esquema como un diagrama UML. Es simplemente una representación de las dependencias de cada objeto.
+
 ## Aplicación Servidor
 
-&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp; La aplicación servidor tiene la función de abrir un servidor en el ip pasado por parámetro. Luego se pone a la espera de que una aplicación cliente se conecte consigo. Una vez conectada con la aplicación cliente, el servidor recibe uno o más mensajes provenientes del cliente con el formato del protocolo DBUS. Una vez recibido el mensaje, se imprimirá por pantalla con el siguiente formato:
+
+```
+* Id: <id en hexadecimal, 4 dígitos, con prefijo "0x">
+* Destino: <destino>
+* Ruta: <path>
+* Interfaz: <interfaz>
+* Metodo: <método>
+```
+
+Y, en caso de tener alguna firma el mensaje, se agrega:
+
+```
+* Parametros:
+    * <parametro1>
+    * <parametroN>
+```
+
+Una vez recibido e impreso el mensaje por pantalla, el servidor le enviará un mensaje de confirmación `'OK\n'` al cliente.
+
+La forma de ejecución de la aplicación servidor es la siguiente:
+
+```
+./server <puerto>
+```
+
+La estructura del servidor esta formada por diferentes objetos:
+
+- socket: el mismo que utiliza el cliente.
+
+- server_info: contiene la información de los dos sockets (el de `bind and listen` y el `peer`) y del puerto donde se abre el servidor.
+
+- server_message: contiene la información del mensaje recibido. Necesita de server_dbus_protocol para su creación.
+
+- server_dbus_protocol: se encarga de crear el server_message a través del mensaje de bytes con formato del protocolo DBUS recibido desde el cliente.
+
+# PONER ESQUEMA
+
+&nbsp;&nbsp;&nbsp;&nbsp; No leer esquema como un diagrama UML. Es simplemente una representación de las dependencias de cada objeto.
 
 ## Conexión Cliente-Servidor
 
