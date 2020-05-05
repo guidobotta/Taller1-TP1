@@ -178,3 +178,7 @@ La estructura del servidor esta formada por diferentes objetos:
 | 5 |                Vuelve al paso 1.                |                    Vuelve al paso 1.                    |
 
 # Conclusiones
+
+&nbsp;&nbsp;&nbsp;&nbsp; Al trabajar con sockets TCP y el protocolo DBUS se puede entender lo complejo que puede llegar a ser el manejo de datos cliente-servidor. 
+
+&nbsp;&nbsp;&nbsp;&nbsp; Este trabajo se realizó con una versión simplificada del protocolo DBUS. Sin embargo, la dificultad del desarrollo no fue baja, lo que muestra que trabajar con ciertos protocolos no es una tarea sencilla y se debe hacer con mucha precaución.
