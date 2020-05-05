@@ -13,6 +13,10 @@
 
 &nbsp;&nbsp;&nbsp;&nbsp; Se desarrollo una implementación del sistema entre procesos y llamadas a procedimientos remotos llamado D-BUS. Se implementaron tanto la aplicación de cliente como la de servidor.
 
+# Aclaraciones
+
+&nbsp;&nbsp;&nbsp;&nbsp; No leer los esquemas como diagrama UML. Son simplemente una representación de las dependencias de cada objeto.
+
 # Desarrollo
 
 ## Socket TPC
@@ -107,9 +111,7 @@ int socket_receive(socket_t *self, char *buffer, size_t length, int flags){
 
 - client_dbus_protocol: es un objeto protocolo que se encarga de convertir el mensaje de client_message a un formato soportado por el protocolo DBUS.
 
-# PONER ESQUEMA
-
-&nbsp;&nbsp;&nbsp;&nbsp; No leer esquema como un diagrama UML. Es simplemente una representación de las dependencias de cada objeto.
+![Diagrama del Cliente](img/client.png)
 
 ## Aplicación Servidor
 
@@ -149,12 +151,30 @@ La estructura del servidor esta formada por diferentes objetos:
 
 - server_dbus_protocol: se encarga de crear el server_message a través del mensaje de bytes con formato del protocolo DBUS recibido desde el cliente.
 
-# PONER ESQUEMA
-
-&nbsp;&nbsp;&nbsp;&nbsp; No leer esquema como un diagrama UML. Es simplemente una representación de las dependencias de cada objeto.
+![Diagrama del Server](img/server.png)
 
 ## Conexión Cliente-Servidor
 
-&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp; Para lograr establecer una conexión cliente-servidor es importante tener en cuenta dos factores:
+
+1. Primero debe iniciarse el servidor, y luego ejecutar el cliente.
+
+2. Tanto el cliente como el servidor deben conectarse al mismo puerto.
+
+&nbsp;&nbsp;&nbsp;&nbsp; La aplicación servidor cuenta con dos sockets. Uno encargado de conectarse y escuchar conexiones entrantes (`bind and listen`), y otro que será el encargado de enviar y recibir mensajes con el socket cliente, el socket `peer`.
+
+&nbsp;&nbsp;&nbsp;&nbsp; Del lado del servidor se cuenta con un único socket, que se conectará con el socket `peer` una vez que el otro socket lo acepte.
+
+![Socket](img/socket.png)
+
+&nbsp;&nbsp;&nbsp;&nbsp; Una vez establecida la conexión, se ejecuta el siguiente ciclo:
+
+|   |                     Cliente                     |                          Server                         |
+|:-:|:-----------------------------------------------:|:-------------------------------------------------------:|
+| 1 |  Recibe mensaje y lo convierte a formato DBUS.  |          Se mantiene a la espera para recibir.          |
+| 2 |           Envía el mensaje formateado.          |              Recibe el mensaje formateado.              |
+| 3 |       Se mantiene a la espera para recibir      | Convierte el mensaje formateado y lo imprime por stdin. |
+| 4 | Recibe el mensaje de confirmación y lo imprime. |         Envia el mensaje de confirmación 'OK\n'.        |
+| 5 |                Vuelve al paso 1.                |                    Vuelve al paso 1.                    |
 
 # Conclusiones
