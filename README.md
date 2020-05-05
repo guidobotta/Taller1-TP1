@@ -27,7 +27,7 @@
 
 &nbsp;&nbsp;&nbsp;&nbsp; Para la solución a este problema, se implemento un TDA Socket, en el cual se implementaron las funciones con el objetivo de facilitar la tarea al usuario. Tanto en las funciones `send` como `rcv` se trataron los posibles problemas de no haber enviado o recibido todos los bytes deseados. La solución para el caso del `rcv` es la siguiente:
 
-```
+```C
 int socket_receive(socket_t *self, char *buffer, size_t length, int flags){
     size_t bytes_recv = 0;
     size_t status = 1;
