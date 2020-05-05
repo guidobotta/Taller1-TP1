@@ -95,7 +95,7 @@ int server_dbus_protocol_create(server_dbus_protocol_t *self,
         return ERROR;
     }
 
-    if (get_body(self, server_info) == ERROR ) {
+    if (get_body(self, server_info) == ERROR) {
         return ERROR;
     }
 

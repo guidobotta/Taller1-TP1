@@ -85,8 +85,8 @@ int client_info_send_message(client_info_t *self,
 
     if (socket_send(&(self->clsocket), client_dbus_protocol->dbusbody, 
                 client_dbus_protocol->body_length, 0) == SOCKET_ERROR) {
-        
-        printf("Error: %s\n", strerror(errno));return ERROR;
+        printf("Error: %s\n", strerror(errno));
+        return ERROR;
     }
 
     return SUCCESS;
