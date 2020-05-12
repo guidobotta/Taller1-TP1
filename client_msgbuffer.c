@@ -7,6 +7,8 @@
 #define ERROR 1
 #define SUCCESS 0
 
+//Muuy bueno que hayas abstraido el buffering en un TDA, perfecto.
+
 int client_msgbuffer_create(client_msgbuffer_t *self) {
     (self->buffer)[0] = '\0';
     return SUCCESS;
