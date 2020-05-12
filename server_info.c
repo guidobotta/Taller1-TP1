@@ -79,7 +79,9 @@ int server_info_establish_connection(server_info_t *self){
         return ERROR;
     }
 
-    if (socket_listen(&(self->blsocket), 10) == SOCKET_ERROR) {
+    if (socket_listen(&(self->blsocket), 10) == SOCKET_ERROR) { //Aca ojo si el bind se ejecuta exitosamente\
+        pero el listen falla después, vas a quedarte sin iterar elementos de la lista. Te recomiendo hacer la sig\
+        modificación: if (bind(...) == 0 && listen(...) == 0) break;
         printf("Error: %s\n", strerror(errno));
         return ERROR;
     }
@@ -93,6 +95,25 @@ int server_info_establish_connection(server_info_t *self){
 }
 
 int server_info_send_client_confirmation(server_info_t *self) {
+
+    //No esta tan buena esta función aca, es poco cohesiva en este TDA\
+    Estas añadiéndole una responsabilidad extra de la cual no debería\
+    hacerse cargo. Este TDA deberia proveer una api que permita simplemente\
+    enviar y recibir mensajes, y desde afuera hacer algo del estilo\
+    server_info_send_message(msg). Fijate que haciendolo de esta forma tenes\
+    un socket funcional mucho mas generico y que permite enviar CUALQUIER mensaje.
+
+    //Otra opción (un poco más amigable): lo que hacen tus funciones\
+    server_infoestablish_connection y server_info_create encapsularlas en tu TDA\
+    common_socket y lo unico que terminarias haciendo en el TDA server_info y en client_info\
+    es wrappear todas las funciones de common_socket para facilmente crear un socket\
+    cliente o servidor.
+
+    //Oootra opción (la que considero ideal): Tener un único TDA para manejar a los sockets\
+    (es decir, darle todo el peso a tu TDA common_socket) y proveer una interfaz que permita:\
+    crear un client-socket o un server-socket y enviar o recibir mensajes.
+
+
     char* confirmation = "OK";
 
     if (socket_send(&(self->peersocket), confirmation, 3, 0) == -1) {

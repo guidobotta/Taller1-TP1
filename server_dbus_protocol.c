@@ -25,7 +25,9 @@ static int get_protocol_values(server_dbus_protocol_t *self,
     (self->dbusheader) = calloc(16, sizeof(char));
 
     int status = socket_receive(&(server_info->peersocket), 
-                                self->dbusheader, 16, 0);
+                                self->dbusheader, 16, 0); //Aca estas accediendo a atributos internos de server_info,\
+    que siquiera debería saber el protocolo que existen y, por ende, estas rompiendo el encapsulamiento de la clase.\
+    Fijate de optar por alguna de las 3 opciones que te di en server_info y refactorizar esto, va a quedar mucho mejor!
 
     if (status == 0) {
         free(self->dbusheader);

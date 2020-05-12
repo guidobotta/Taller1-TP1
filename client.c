@@ -9,6 +9,18 @@
 #define SUCCESS 0
 
 int send_recieve_to_server(FILE* input, client_info_t *client_info){
+    /*Esto deberías encapsularlo en un TDA, no está bueno que haga un procesamiento\
+    de este tipo en el modulo donde tenes tu main... Abstraelo en un TDA que se encargue\
+    de este procesamiento y en el main hacer algo del estilo execute_server() (obviamente
+    atrapando todos los errores que correspondan y liberando recursos).
+    Lo mas lindo sería que, incluso, en este TDA abstraigas la apertura/cierre de los archivos.
+    (y entonces, en su creacion, en lugar de pasarle un FILE* le pasas un path)
+
+    ***Lo mismo para tu archivo "server.c"*** 
+
+    Asegurate de que estos tdas que haran de interfaz para el cliente y el servidor, provean
+    una interfaz sencilla para manejarlos desde el main!! */
+    
     client_message_t client_message;
     int status;
     uint32_t msg_id = 1;

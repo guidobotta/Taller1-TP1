@@ -93,6 +93,7 @@ int client_info_send_message(client_info_t *self,
 }
 
 int client_info_recibe_confirmation(client_info_t *self, uint32_t id) {
+    //Aca te remarco lo mismo que te dije en server_info.
     char confirmation[3];
 
     if (socket_receive(&(self->clsocket), confirmation, 3, 0) == 

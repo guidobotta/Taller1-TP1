@@ -38,7 +38,7 @@ int server_message_destroy(server_message_t *self) {
 
 static void get_word_length(server_message_t *self, uint32_t *word_length, 
                             uint32_t msg_index) {
-    while ((self->message)[msg_index] != '\0') {
+    while ((self->message)[msg_index] != '\0') { //Podrias haber usado strlen de la libc pero está bien!
         (*word_length)++;
         msg_index++;
     }
