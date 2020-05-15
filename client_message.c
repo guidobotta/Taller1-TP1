@@ -11,7 +11,23 @@
 #define ERROR 1
 #define SUCCESS 0
 
-int client_message_create(client_message_t *self, FILE *input) {
+static int get_file(const char *path, FILE **input) {
+    (*input) = stdin;
+    if (path != NULL) {
+        (*input) = fopen(path, "r");
+        if ((*input) == NULL) {
+            printf("Error: %s\n", strerror(errno));
+            return ERROR;
+        }
+    }
+    return SUCCESS;
+}
+
+int client_message_create(client_message_t *self, const char *path) {
+    if (get_file(path, &(self->input)) == ERROR) {
+        return ERROR;
+    }
+
     int status;
     if (client_msgbuffer_create(&(self->client_msgbuffer)) == ERROR) {
         return ERROR;
@@ -21,36 +37,10 @@ int client_message_create(client_message_t *self, FILE *input) {
     self->message = calloc(self->msgmemory, sizeof(char));
     self->msglenght = 0;
     
-    status = client_msgbuffer_getline(&(self->client_msgbuffer), self, input);
+    status = client_msgbuffer_getline(&(self->client_msgbuffer), self, self->input);
     
     if ((status == EOF) || (status == ERROR)) {
         return status;
-    }
-
-    return SUCCESS;
-}
-
-int client_message_send(client_message_t *self, client_info_t *client_info, 
-                        uint32_t msg_id) {
-    client_dbus_protocol_t client_dbus_protocol;
-    if (client_dbus_protocol_create(&client_dbus_protocol) == ERROR) {
-        return ERROR;
-    }
-
-    if (client_dbus_protocol_message_to_DBUS(&client_dbus_protocol, self, 
-                                                msg_id) == ERROR) {
-        client_dbus_protocol_destroy(&client_dbus_protocol);
-        return ERROR;
-    }
-
-    if (client_info_send_message(client_info, &client_dbus_protocol) == 
-        ERROR) {
-        client_dbus_protocol_destroy(&client_dbus_protocol);
-        return ERROR;
-    }
-
-    if (client_dbus_protocol_destroy(&client_dbus_protocol) == ERROR) {
-        return ERROR;
     }
 
     return SUCCESS;
@@ -62,6 +52,13 @@ int client_message_destroy(client_message_t *self) {
     }
 
     free(self->message);
+
+    if (self->input != stdin) {
+        if (fclose(self->input) == EOF){
+            printf("Error: %s\n", strerror(errno));
+            return ERROR;
+        }
+    }
     
     return SUCCESS;
 }

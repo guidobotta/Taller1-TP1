@@ -6,8 +6,10 @@ typedef struct client_message client_message_t;
 #include "client_msgbuffer.h"
 #include "client_info.h"
 #include <stdint.h>
+#include <stdio.h>
 
 struct client_message {
+    FILE *input;
     char* message;
     uint32_t msgmemory;
     uint32_t msglenght;
@@ -19,7 +21,7 @@ struct client_message {
  * de donde se leera el mensaje.
  * Devuelve 1 en caso de error o 0 en caso de éxito.
 */
-int client_message_create(client_message_t *self, FILE *input);
+int client_message_create(client_message_t *self, const char *path);
 
 /*
  * Destruye el objeto client_message.
@@ -32,14 +34,5 @@ int client_message_destroy(client_message_t *self);
  * Devuelve 1 en caso de error o 0 en caso de éxito.
 */
 int client_message_realloc(client_message_t *self);
-
-/*
- * Convierte el mensaje al formato del protocolo DBUS. Luego
- * envia el mensaje al servidor que se encuentra conectado
- * client_info.
- * Devuelve 1 en caso de error o 0 en caso de éxito.
-*/
-int client_message_send(client_message_t *self, client_info_t *client_info, 
-                        uint32_t msg_id);
 
 #endif

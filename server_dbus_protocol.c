@@ -24,8 +24,7 @@ static int get_protocol_values(server_dbus_protocol_t *self,
                                 server_info_t *server_info) {
     (self->dbusheader) = calloc(16, sizeof(char));
 
-    int status = socket_receive(&(server_info->peersocket), 
-                                self->dbusheader, 16, 0);
+    int status = server_info_rcv_message(server_info, self->dbusheader, 16);
 
     if (status == 0) {
         free(self->dbusheader);
@@ -59,9 +58,9 @@ static int get_header(server_dbus_protocol_t *self, server_info_t
     } else {
         self->dbusheader = result;
     }
-
-    if (socket_receive(&(server_info->peersocket), self->dbusheader, 
-                        self->header_length, 0) == SOCKET_ERROR) {
+    
+    if (server_info_rcv_message(server_info, self->dbusheader, 
+                                self->header_length) == SOCKET_ERROR) {
         return ERROR;
     }
 
@@ -75,8 +74,8 @@ static int get_body(server_dbus_protocol_t *self, server_info_t *server_info) {
         return ERROR;
     }
     
-    if (socket_receive(&(server_info->peersocket), self->dbusbody, 
-                        self->body_length, 0) == SOCKET_ERROR) {
+    if (server_info_rcv_message(server_info, self->dbusbody, 
+                                self->body_length) == SOCKET_ERROR) {
         return ERROR;
     }
 

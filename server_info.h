@@ -36,10 +36,18 @@ int server_info_destroy(server_info_t *self);
 int server_info_establish_connection(server_info_t *self);
 
 /*
- * Le envia un mensaje de confirmacion al cliente para
- * avisar que el mensaje fue recibido con exito.
- * Devuelve 1 en caso de error o 0 en caso de exito.
+ * Recibe un mensaje de tamaño n del cliente y lo guarda
+ * en el buffer.
+ * Devuelve -1 en caso de error o la cantidad de bytes leidos
+ * en caso de exito.
 */
-int server_info_send_client_confirmation(server_info_t *self);
+int server_info_rcv_message(server_info_t *self, char *buff, size_t n);
+
+/*
+ * Le envia un mensaje msg de tamaño n al cliente.
+ * Devuelve -1 en caso de error o la cantidad de byter enviados
+ * en caso de exito.
+*/
+int server_info_send_message(server_info_t *self, char *msg, size_t n);
 
 #endif

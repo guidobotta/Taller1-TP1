@@ -64,8 +64,9 @@ int server_info_establish_connection(server_info_t *self){
         if (socket_create(&(self->blsocket)) == SOCKET_ERROR) {
             printf("Error: %s\n", strerror(errno));
         } else {
-            if (socket_bind(&(self->blsocket), addr_ptr->ai_addr, 
-                                addr_ptr->ai_addrlen) != SOCKET_ERROR) {
+            if ( (socket_bind(&(self->blsocket), addr_ptr->ai_addr, 
+                    addr_ptr->ai_addrlen) != SOCKET_ERROR) &&
+                    (socket_listen(&(self->blsocket), 10) != SOCKET_ERROR) ) {
                 break;
             } else {
                 printf("Error: %s\n", strerror(errno));
@@ -79,10 +80,6 @@ int server_info_establish_connection(server_info_t *self){
         return ERROR;
     }
 
-    if (socket_listen(&(self->blsocket), 10) == SOCKET_ERROR) {
-        printf("Error: %s\n", strerror(errno));
-        return ERROR;
-    }
     if (socket_accept(&(self->blsocket), addr_ptr->ai_addr, 
             &(addr_ptr->ai_addrlen), &(self->peersocket)) == SOCKET_ERROR) {
         printf("Error: %s\n", strerror(errno));
@@ -92,12 +89,10 @@ int server_info_establish_connection(server_info_t *self){
     return SUCCESS;
 }
 
-int server_info_send_client_confirmation(server_info_t *self) {
-    char* confirmation = "OK";
+int server_info_rcv_message(server_info_t *self, char *buff, size_t n) {
+    return socket_receive(&(self->peersocket), buff, n, 0);
+}
 
-    if (socket_send(&(self->peersocket), confirmation, 3, 0) == -1) {
-        return ERROR;
-    }
-
-    return SUCCESS;
+int server_info_send_message(server_info_t *self, char *msg, size_t n) {
+    return socket_send(&(self->peersocket), msg, n, 0) == SOCKET_ERROR;
 }

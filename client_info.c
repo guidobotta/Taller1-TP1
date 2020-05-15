@@ -75,33 +75,46 @@ int client_info_establish_connection(client_info_t *self){
     return SUCCESS;
 }
 
-int client_info_send_message(client_info_t *self, 
-                                client_dbus_protocol_t *client_dbus_protocol) {
-    if (socket_send(&(self->clsocket), client_dbus_protocol->dbusheader, 
-                client_dbus_protocol->header_length, 0) == SOCKET_ERROR) {
-        printf("Error: %s\n", strerror(errno));
+int client_info_send_message(client_info_t *self, client_message_t *msg, 
+                            uint32_t msg_id) {
+    client_dbus_protocol_t client_dbus_protocol;
+    if (client_dbus_protocol_create(&client_dbus_protocol) == ERROR) {
         return ERROR;
     }
 
-    if (socket_send(&(self->clsocket), client_dbus_protocol->dbusbody, 
-                client_dbus_protocol->body_length, 0) == SOCKET_ERROR) {
+    if (client_dbus_protocol_message_to_DBUS(&client_dbus_protocol, msg, 
+                                                msg_id) == ERROR) {
+        client_dbus_protocol_destroy(&client_dbus_protocol);
+        return ERROR;
+    }
+
+    if (socket_send(&(self->clsocket), client_dbus_protocol.dbusheader, 
+                client_dbus_protocol.header_length, 0) == SOCKET_ERROR) {
         printf("Error: %s\n", strerror(errno));
+        client_dbus_protocol_destroy(&client_dbus_protocol);
+        return ERROR;
+    }
+
+    if (socket_send(&(self->clsocket), client_dbus_protocol.dbusbody, 
+                client_dbus_protocol.body_length, 0) == SOCKET_ERROR) {
+        printf("Error: %s\n", strerror(errno));
+        client_dbus_protocol_destroy(&client_dbus_protocol);
+        return ERROR;
+    }
+
+    if (client_dbus_protocol_destroy(&client_dbus_protocol) == ERROR) {
         return ERROR;
     }
 
     return SUCCESS;
 }
 
-int client_info_recibe_confirmation(client_info_t *self, uint32_t id) {
-    char confirmation[3];
-
-    if (socket_receive(&(self->clsocket), confirmation, 3, 0) == 
+int client_info_recibe_message(client_info_t *self, char* buff, size_t n) {
+    if (socket_receive(&(self->clsocket), buff, n, 0) == 
                         SOCKET_ERROR) {
         printf("Error: %s\n", strerror(errno));
         return ERROR;
     }
-
-    printf("0x%08x: %s\n", id, confirmation);
 
     return SUCCESS;
 }
