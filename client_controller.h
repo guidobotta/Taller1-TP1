@@ -6,7 +6,7 @@
 
 typedef struct client_controller{
     client_info_t client_info;
-    const char *path;
+    FILE* input;
     client_message_t client_message;
     int status;
     uint32_t msg_id;

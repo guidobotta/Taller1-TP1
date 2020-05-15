@@ -1,7 +1,21 @@
 #include "client_controller.h"
+#include <errno.h>
+#include <string.h>
 
 #define ERROR 1
 #define SUCCESS 0
+
+static int get_file(const char *path, FILE **input) {
+    (*input) = stdin;
+    if (path != NULL) {
+        (*input) = fopen(path, "r");
+        if ((*input) == NULL) {
+            printf("Error: %s\n", strerror(errno));
+            return ERROR;
+        }
+    }
+    return SUCCESS;
+}
 
 int client_controller_create(client_controller_t *self, const char *hostname, 
                         const char *servicename, const char *path) {
@@ -10,10 +24,14 @@ int client_controller_create(client_controller_t *self, const char *hostname,
         return ERROR;
     }
 
-    self->path = path;
+    if (get_file(path, &(self->input)) == ERROR) {
+        client_info_destroy(&(self->client_info));
+        return ERROR;
+    }
+    
     self->msg_id = 1;
-    if ((self->status = client_message_create(&(self->client_message), path))
-            == ERROR) {
+    if ((self->status = client_message_create(&(self->client_message), 
+            self->input)) == ERROR) {
         client_info_destroy(&(self->client_info));
         return ERROR;
     }
@@ -22,6 +40,14 @@ int client_controller_create(client_controller_t *self, const char *hostname,
 }
 
 int client_controller_destroy(client_controller_t *self) {
+    if (self->input != stdin) {
+        if (fclose(self->input) == EOF) {
+            client_message_destroy(&(self->client_message));
+            client_info_destroy(&(self->client_info));
+            return ERROR;
+        }
+    }
+    
     if (client_message_destroy(&(self->client_message)) == ERROR) {
         client_info_destroy(&(self->client_info));
         return ERROR;
@@ -70,7 +96,7 @@ int client_controller_execute(client_controller_t *self) {
         }
 
         if ((self->status = client_message_create(&(self->client_message), 
-            self->path)) == ERROR) {
+            self->input)) == ERROR) {
             return ERROR;
         }
 

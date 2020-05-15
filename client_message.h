@@ -21,7 +21,7 @@ struct client_message {
  * de donde se leera el mensaje.
  * Devuelve 1 en caso de error o 0 en caso de éxito.
 */
-int client_message_create(client_message_t *self, const char *path);
+int client_message_create(client_message_t *self, FILE *input);
 
 /*
  * Destruye el objeto client_message.
