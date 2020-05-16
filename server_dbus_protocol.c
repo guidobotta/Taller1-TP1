@@ -8,7 +8,7 @@
 #define ERROR 1
 #define SUCCESS 0
 
-static void swap(uint32_t *param) {
+static void uint_swap(uint32_t *param) {
     char *c = (char*) param;
     char d[4];
     for (int i = 0; i < 4; i++) {
@@ -22,7 +22,7 @@ static void swap(uint32_t *param) {
 static void char_to_int32(server_dbus_protocol_t *self, uint32_t *param, 
                             char* buff, uint32_t *index) {
     if ((self->server_endian) != (self->client_endian)) {
-        swap(param);
+        uint_swap(param);
     }
 
     char *char_to_int = (char*)param;
@@ -112,6 +112,7 @@ static char get_endianness() {
 
 int server_dbus_protocol_create(server_dbus_protocol_t *self, 
                                 server_info_t *server_info) {
+    self->server_endian = get_endianness();
     int status;
     if ((status = get_protocol_values(self, server_info)) != SUCCESS) {
         return status;
@@ -125,8 +126,6 @@ int server_dbus_protocol_create(server_dbus_protocol_t *self,
     if (get_body(self, server_info) == ERROR) {
         return ERROR;
     }
-
-    self->server_endian = get_endianness();
 
     return SUCCESS;
 }
