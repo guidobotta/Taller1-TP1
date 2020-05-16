@@ -253,11 +253,22 @@ static uint32_t get_body(client_dbus_protocol_t *self,
     return body_index;
 }
 
+static char get_endianness() {
+    uint32_t one = 1;
+    char* bytes = (char*) &one;
+    if (bytes[0] == 0) {
+        return 'b';
+    } else {
+        return 'l';
+    }
+}
+
 static uint32_t get_header(client_dbus_protocol_t *self, 
                         client_message_t *client_message, uint32_t msg_id) {
     uint32_t header_index = 0;
+    char endian = get_endianness();
 
-    char c[4] = {'l', 1, 0, 1};
+    char c[4] = {endian, 1, 0, 1};
     set_four_chars(self, &header_index, c);
     set_int32((self->body_length), &(self->dbusheader), &header_index);
     set_int32(msg_id, &(self->dbusheader), &header_index);

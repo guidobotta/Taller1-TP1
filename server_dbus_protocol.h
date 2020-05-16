@@ -11,6 +11,8 @@ typedef struct server_dbus_protocol {
     char* dbusbody;
     uint32_t body_length;
     uint32_t id;
+    char server_endian;
+    char client_endian;
 } server_dbus_protocol_t;
 
 /*

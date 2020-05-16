@@ -8,7 +8,23 @@
 #define ERROR 1
 #define SUCCESS 0
 
-static void char_to_int32(uint32_t *param, char* buff, uint32_t *index) {
+static void swap(uint32_t *param) {
+    char *c = (char*) param;
+    char d[4];
+    for (int i = 0; i < 4; i++) {
+        d[i] = c[i];
+    }
+    for (int i = 0; i < 4; i++) {
+        c[i] = d[3-i];
+    }
+}
+
+static void char_to_int32(server_dbus_protocol_t *self, uint32_t *param, 
+                            char* buff, uint32_t *index) {
+    if ((self->server_endian) != (self->client_endian)) {
+        swap(param);
+    }
+
     char *char_to_int = (char*)param;
     char_to_int[0] = (buff)[*index];
     (*index)++;
@@ -38,14 +54,16 @@ static int get_protocol_values(server_dbus_protocol_t *self,
 }
 
 static void set_protocol_values(server_dbus_protocol_t *self) {
-    uint32_t index = 4;
+    uint32_t index = 0;
 
-    char_to_int32(&(self->body_length), self->dbusheader, &index);
+    self->client_endian = self->dbusheader[index];
+    index += 4;
+    char_to_int32(self, &(self->body_length), self->dbusheader, &index);
     if ((self->body_length) == 4) {
         (self->body_length) = 0;
     }
-    char_to_int32(&(self->id), self->dbusheader, &index);
-    char_to_int32(&(self->header_length), self->dbusheader, &index);
+    char_to_int32(self, &(self->id), self->dbusheader, &index);
+    char_to_int32(self, &(self->header_length), self->dbusheader, &index);
 }
 
 static int get_header(server_dbus_protocol_t *self, server_info_t 
@@ -82,6 +100,16 @@ static int get_body(server_dbus_protocol_t *self, server_info_t *server_info) {
     return SUCCESS;
 }
 
+static char get_endianness() {
+    uint32_t one = 1;
+    char* bytes = (char*) &one;
+    if (bytes[0] == 0) {
+        return 'b';
+    } else {
+        return 'l';
+    }
+}
+
 int server_dbus_protocol_create(server_dbus_protocol_t *self, 
                                 server_info_t *server_info) {
     int status;
@@ -98,6 +126,8 @@ int server_dbus_protocol_create(server_dbus_protocol_t *self,
         return ERROR;
     }
 
+    self->server_endian = get_endianness();
+
     return SUCCESS;
 }
 
@@ -107,9 +137,10 @@ int server_dbus_protocol_destroy(server_dbus_protocol_t *self) {
     return SUCCESS;
 }
 
-static void set_param(char* buff, server_message_t *server_message, 
-                        uint32_t *index, uint32_t *param_size) {
-    char_to_int32(param_size, buff, index);
+static void set_param(server_dbus_protocol_t *self, char* buff, 
+                        server_message_t *server_message, uint32_t *index,
+                        uint32_t *param_size) {
+    char_to_int32(self, param_size, buff, index);
     (*param_size)++;
 
     for (uint32_t i = 0; i < (*param_size); i++) {
@@ -143,13 +174,13 @@ int server_dbus_protocol_DBUS_to_message(server_dbus_protocol_t *self,
 
     for (int i = 0; i < 4; i++) {
         dbus_header_index += 4;
-        set_param(self->dbusheader, server_message, &dbus_header_index, 
+        set_param(self, self->dbusheader, server_message, &dbus_header_index,
                     &param_size);   
         look_for_next_param(&param_size, &dbus_header_index);
     }
 
     while (dbus_body_index < (self->body_length)) {
-        set_param(self->dbusbody, server_message, &dbus_body_index, 
+        set_param(self, self->dbusbody, server_message, &dbus_body_index,
                     &param_size);
     }
 
