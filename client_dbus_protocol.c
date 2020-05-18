@@ -11,7 +11,19 @@
 #define ERROR 1
 #define SUCCESS 0
 
+static char get_endianness() {
+    uint32_t one = 1;
+    char* bytes = (char*) &one;
+    if (bytes[0] == 0) {
+        return 'b';
+    } else {
+        return 'l';
+    }
+}
+
 int client_dbus_protocol_create(client_dbus_protocol_t *self) {
+    (self->client_endian) = get_endianness();
+
     (self->header_length) = 0;
     (self->header_size) = 128;
     (self->dbusheader) = calloc(self->header_size, sizeof(char));
@@ -48,7 +60,23 @@ static uint32_t get_word_length(client_message_t *client_message,
     return *word_length;
 }
 
-static void set_int32(uint32_t intc, char** buffer, uint32_t *index) {
+static void uint_swap(uint32_t *param) {
+    char *c = (char*) param;
+    char d[4];
+    for (int i = 0; i < 4; i++) {
+        d[i] = c[i];
+    }
+    for (int i = 0; i < 4; i++) {
+        c[i] = d[3-i];
+    }
+}
+
+static void set_int32(client_dbus_protocol_t *self, uint32_t intc, 
+                        char** buffer, uint32_t *index) {
+    if ((self->client_endian) != 'l') {
+        uint_swap(&intc);
+    }
+    
     unsigned char cint[4];
 
     cint[0] = (unsigned char)(intc & 0xFF);
@@ -93,7 +121,7 @@ client_message_t *client_message, uint32_t *body_index, uint32_t *msg_index) {
         return ERROR;
     }
     
-    set_int32(word_length, &(self->dbusbody), body_index);
+    set_int32(self, word_length, &(self->dbusbody), body_index);
 
     for (int i = 0; i < word_length; i++) {
         (self->dbusbody)[*body_index] = (client_message->message)[*msg_index];
@@ -218,7 +246,7 @@ static int set_array(client_message_t *client_message,
 
     set_param_data(self, header_index, wordnumber);
 
-    set_int32(word_length, &(self->dbusheader), header_index);
+    set_int32(self, word_length, &(self->dbusheader), header_index);
 
     (*array_length) += 8;
 
@@ -253,25 +281,14 @@ static uint32_t get_body(client_dbus_protocol_t *self,
     return body_index;
 }
 
-static char get_endianness() {
-    uint32_t one = 1;
-    char* bytes = (char*) &one;
-    if (bytes[0] == 0) {
-        return 'b';
-    } else {
-        return 'l';
-    }
-}
-
 static uint32_t get_header(client_dbus_protocol_t *self, 
                         client_message_t *client_message, uint32_t msg_id) {
     uint32_t header_index = 0;
-    char endian = get_endianness();
 
-    char c[4] = {endian, 1, 0, 1};
+    char c[4] = {'l', 1, 0, 1};
     set_four_chars(self, &header_index, c);
-    set_int32((self->body_length), &(self->dbusheader), &header_index);
-    set_int32(msg_id, &(self->dbusheader), &header_index);
+    set_int32(self, (self->body_length), &(self->dbusheader), &header_index);
+    set_int32(self, msg_id, &(self->dbusheader), &header_index);
     
     uint32_t array_length = 0;
     uint32_t array_length_index = header_index;
@@ -287,7 +304,7 @@ static uint32_t get_header(client_dbus_protocol_t *self,
         }
     }
 
-    set_int32(array_length, &(self->dbusheader), &array_length_index);
+    set_int32(self, array_length, &(self->dbusheader), &array_length_index);
 
     return header_index;
 }
